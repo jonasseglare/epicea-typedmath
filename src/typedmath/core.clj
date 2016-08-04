@@ -160,11 +160,11 @@
 (defmacro elementwise-left [left right op cb]
   `(async-map
     (fn [field# cb#] 
-      (call-typed-inline (quote ~op) [field b] cb#))
-    (:fields a)
+      (call-typed-inline (quote ~op) [field# ~right] cb#))
+    (:fields ~left)
     (fn [added#]
-      (cb {:type :vector
-           :fields added#}))))
+      (~cb {:type :vector
+            :fields added#}))))
   
   
 
