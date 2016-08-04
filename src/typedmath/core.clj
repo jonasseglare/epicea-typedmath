@@ -191,8 +191,8 @@
     (list? x) (compile-list-form x cb)
     :default (RuntimeException. (str "Failed to compile: " x))))
 
-(defmacro elementwise-left [rhs op]
-  `(def-typed-inline ~op [[:vector a#] [~rhs b#]] cb#
+(defmacro elementwise-left [op]
+  `(def-typed-inline ~op [[:vector a#] [scalar? b#]] cb#
      (async-map
       (fn [field# cb0#] 
         (call-typed-inline (quote ~op) [field# b#] cb0#))
@@ -201,25 +201,24 @@
         (cb# {:type :vector
               :fields added#})))))
 
-(def-typed-inline typed+ [[:vector a] [scalar? b]] cb
-  (async-map
-   (fn [field cb] 
-     (call-typed-inline 'typed+ [field b] cb))
-   (:fields a)
-   (fn [added]
-     (cb {:type :vector
-          :fields added}))))
-  
+(defmacro elementwise-right [op]
+  `(def-typed-inline ~op [[scalar? a#] [:vector b#]] cb#
+     (async-map
+      (fn [field# cb0#] 
+        (call-typed-inline (quote ~op) [a# field#] cb0#))
+      (:fields b#)
+      (fn [added#]
+        (cb# {:type :vector
+              :fields added#})))))
 
-(templated 
- [rhs]
- [[:double]
-  [:number]]
- (do
-   ;(elementwise-left rhs typed+)
-   (elementwise-left rhs typed-)
-   (elementwise-left rhs typed*)
-   (elementwise-left rhs typed-div)))
+(elementwise-left typed+)
+(elementwise-left typed-)
+(elementwise-left typed*)
+(elementwise-left typed-div)
+(elementwise-right typed+)
+(elementwise-right typed-)
+(elementwise-right typed*)
+(elementwise-right typed-div)
 
 nil
 

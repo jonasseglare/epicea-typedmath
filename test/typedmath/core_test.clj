@@ -65,6 +65,10 @@
     (is (= [-1 -2 -3] 
            (make-clojure-data
             (compile-expr '(typed- [5 4 3] 6) identity))))
+    (is (= [2 4 8]
+           (make-clojure-data
+            (compile-expr '(typed* 2 [1 2 4]) identity))))
+            
 
     ;(= (compile 
 
