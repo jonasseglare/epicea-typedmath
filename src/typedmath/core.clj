@@ -72,6 +72,27 @@
        (get replacement-map x) x))
    form))
 
+(defmacro templated [symbols replacements form]
+  (cons
+   'do
+   (map 
+   (fn [rp]
+     (replace-recursively
+      (zipmap symbols rp)
+      form))
+   replacements)))
+
+(templated 
+ [left right result]
+ [[:number :number :number]
+  [:double :number :number]
+  [:number :double :number]
+  [:double :double :double]]
+ (def-typed-inline typed+ [[left a] [right b]] cb
+  (cb {:type result
+       :expr (precompute `(+ ~(:expr a) ~(:expr b)))})))
+   
+
 (def-typed-inline typed+ [[:number a] [:number b]] cb
   (cb {:type :number
        :expr (precompute `(+ ~(:expr a) ~(:expr b)))}))

@@ -2,13 +2,13 @@
   (:require [clojure.test :refer :all]
             [typedmath.core :refer :all]))
 
-(add-typed-inline 'dummy 
-                     (fn [args]
-                       (every? number? args))
-                     :dummy-numbers)
 
 (deftest typedmath-test
   (testing "FIXME, I fail."
+    (add-typed-inline 'dummy 
+                      (fn [args]
+                        (every? number? args))
+                      :dummy-numbers)
     (is (= {:katt [119]} (conj-in-map {} :katt 119)))
     (is (= {:katt [119 120]} 
            (conj-in-map {:katt [119]} :katt 120)))
