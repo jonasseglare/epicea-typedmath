@@ -7,14 +7,14 @@
     (eval x)
     (catch Throwable e x)))
 
+;; Represents something not known at compile time.
+(defn make-dynamic [x]
+  {:type :dynamic :expr x})
+
 ;; Represents any number on the host platform.
 (defn make-number [x]
   (assert (number? x))
   {:type :number :expr x})
-
-;; Represents something not known at compile time.
-(defn make-dynamic [x]
-  {:type :dynamic :expr x})
 
 (defn conj-in-map [m key value]
   (if (contains? m key)
@@ -87,16 +87,16 @@
   (cb {:type :number
        :expr (precompute `(+ ~(:expr a) ~(:expr b)))}))
 
-(assert (= (call-typed-inline 'typed+ [{:type :number :expr 3}
-                                       {:type :number :expr 4}] identity)
-           {:type :number
-            :expr 7}))
-
 (defn call-typed-inline [name args cb]
   (if-let [f (find-typed-inline name args)]
     (f args cb)
     (RuntimeException.
      (str "Didn't find function named " name " for arguments " args))))
+
+(assert (= (call-typed-inline 'typed+ [{:type :number :expr 3}
+                                       {:type :number :expr 4}] identity)
+           {:type :number
+            :expr 7}))
 
 (assert (= {:type :number :expr 9}) (make-number 9))
 
