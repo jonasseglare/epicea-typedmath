@@ -16,6 +16,10 @@
   (assert (number? x))
   {:type :number :expr x})
 
+(defn make-double [x]
+  (assert (number? x))
+  {:type :double :expr x})
+
 (defn conj-in-map [m key value]
   (if (contains? m key)
     (update-in m [key] #(conj % value))
@@ -34,8 +38,6 @@
                  (if (tester? args) fun))
                (get (deref table) name)))]
              fun)))
-
-
 
 (defn valid-type-spec? [x]
   (and (vector? x)
@@ -63,6 +65,13 @@
     (fn [[~@(map second types)] ~cb]
       ~@body)))
 
+(defn replace-recursively [replacement-map form]
+  (clojure.walk/prewalk
+   (fn [x]
+     (if (contains? replacement-map x)
+       (get replacement-map x) x))
+   form))
+
 (def-typed-inline typed+ [[:number a] [:number b]] cb
   (cb {:type :number
        :expr (precompute `(+ ~(:expr a) ~(:expr b)))}))
@@ -72,7 +81,6 @@
     (f args cb)
     (RuntimeException.
      (str "Didn't find function named " name " for arguments " args))))
-
 
 (declare compile-expr)
 
@@ -120,9 +128,6 @@
     (vector? x) (make-vector x cb)
     (list? x) (compile-list-form x cb)
     :default (RuntimeException. (str "Failed to compile: " x))))
-
-
-
 
 (def-typed-inline typed+ [[:vector a] [:number b]] cb
   (async-map

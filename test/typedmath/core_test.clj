@@ -56,6 +56,9 @@
            (eval (make-expression 
                   (compile-expr '(typed+ [1 2 3] 4) identity)))))
 
+    (= (replace-recursively {:a 3 :b 4} [:a :b])
+       [3 4])
+
 
 ))
 
