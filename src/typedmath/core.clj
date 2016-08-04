@@ -27,10 +27,12 @@
 
 (defmulti make-clojure-data :type :default nil)
 (defmulti drop-data :type)
-;(defmulti flat-size :type)
+(defmulti flat-size :type)
 (defmulti flat-vector :type)
-(defn flat-size [x] (count (flat-vector x)))
+;(defn flat-size [x] (count (flat-vector x)))
+(defmulti populate (fn [x v] (:type x)))
 
+;; Everything that in reality can be represented using just one primitive.
 (templated
  [y]
  [[:number] 
@@ -38,13 +40,31 @@
  (do
    (defmethod flat-vector y [x] [(:expr x)])
    (defmethod make-clojure-data y [x] (:expr x))
-;   (defmethod flat-size y [x] 1)
+   (defmethod flat-size y [x] 1)
+   (defmethod populate y [x v] (assoc x :expr (first v)))
    (defmethod drop-data y [x] (dissoc x :expr))))
 
+(defn pop-field [acc next-field]
+  {:populated 
+   (conj (:populated acc) (populate next-field (:data acc)))
+   :data 
+   (drop (flat-size next-field) (:data acc))})
+
+(defn populate-fields [fields v]
+  (:populated
+   (reduce 
+    pop-field
+    {:populated []
+     :data v}
+     fields)))
+      
 (defmethod make-clojure-data :vector [x] (mapv make-clojure-data (:fields x)))
 (defmethod drop-data :vector [x] (update-in x [:fields] #(mapv drop-data %)))
-;(defmethod flat-size :vector [x] (apply + (map flat-size (:fields x))))
+(defmethod flat-size :vector [x] (apply + (map flat-size (:fields x))))
 (defmethod flat-vector :vector [x] (vec (mapcat flat-vector (:fields x))))
+(defmethod populate :vector [x v]
+  (update x :fields #(populate-fields % v)))
+          
 
 
 
