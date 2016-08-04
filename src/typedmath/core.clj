@@ -161,7 +161,13 @@
 
 
 (defmulti make-expression :type :default nil)
-(defmethod make-expression :number [x] (:expr x))
+
+(templated
+ [y]
+ [[:number] 
+  [:double]]
+ (defmethod make-expression y [x] (:expr x)))
+
 (defmethod make-expression :vector [x] (mapv make-expression (:fields x)))
 
 
