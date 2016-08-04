@@ -63,8 +63,8 @@
       (every?
        identity
        (map (fn [a b]
-              (a b))
-            (map make-arg-tester types)
+              ((make-arg-tester a) b))
+            types
             args)))))
             
 
