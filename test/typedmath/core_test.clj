@@ -62,6 +62,8 @@
     (= (compile-expr '(typed* 9 3) identity)
        '{:type :number :expr 27})
 
+    ;(= (compile 
+
 
 ))
 
