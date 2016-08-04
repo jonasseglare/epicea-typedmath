@@ -58,6 +58,9 @@
 
     (= (replace-recursively {:a 3 :b 4} [:a :b])
        [3 4])
+    
+    (= (compile-expr '(typed* 9 3) identity)
+       '{:type :number :expr 27})
 
 
 ))

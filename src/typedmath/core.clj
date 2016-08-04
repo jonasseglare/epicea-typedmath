@@ -88,9 +88,21 @@
   [:double :number :number]
   [:number :double :number]
   [:double :double :double]]
- (def-typed-inline typed+ [[left a] [right b]] cb
-  (cb {:type result
-       :expr (precompute `(+ ~(:expr a) ~(:expr b)))})))
+ (do
+   (def-typed-inline typed+ [[left a] [right b]] cb
+     (cb {:type result
+          :expr (precompute `(+ ~(:expr a) ~(:expr b)))}))
+   (def-typed-inline typed- [[left a] [right b]] cb
+     (cb {:type result
+          :expr (precompute `(- ~(:expr a) ~(:expr b)))}))
+   (def-typed-inline typed* [[left a] [right b]] cb
+     (cb {:type result
+          :expr (precompute `(* ~(:expr a) ~(:expr b)))}))
+   (def-typed-inline typed-div [[left a] [right b]] cb
+     (cb {:type result
+          :expr (precompute `(/ ~(:expr a) ~(:expr b)))}))))
+
+
 
 (defn call-typed-inline [name args cb]
   (if-let [f (find-typed-inline name args)]
