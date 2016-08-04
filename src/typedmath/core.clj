@@ -157,9 +157,6 @@
     (list? x) (compile-list-form x cb)
     :default (RuntimeException. (str "Failed to compile: " x))))
 
-;(defmacro elementwise-vector [vec-sym elem-sym per-element-expr]
-  
-
 (templated 
  [rhs]
  [[:double]
@@ -169,6 +166,22 @@
      (async-map
       (fn [field cb] 
         (call-typed-inline 'typed+ [field b] cb))
+      (:fields a)
+      (fn [added]
+        (cb {:type :vector
+             :fields added}))))
+   (def-typed-inline typed* [[:vector a] [rhs b]] cb
+     (async-map
+      (fn [field cb] 
+        (call-typed-inline 'typed* [field b] cb))
+      (:fields a)
+      (fn [added]
+        (cb {:type :vector
+             :fields added}))))
+   (def-typed-inline typed-div [[:vector a] [rhs b]] cb
+     (async-map
+      (fn [field cb] 
+        (call-typed-inline 'typed-div [field b] cb))
       (:fields a)
       (fn [added]
         (cb {:type :vector

@@ -56,11 +56,15 @@
            (eval (make-expression 
                   (compile-expr '(typed+ [1 2 3] 4) identity)))))
 
-    (= (replace-recursively {:a 3 :b 4} [:a :b])
-       [3 4])
+    (is (= (replace-recursively {:a 3 :b 4} [:a :b])
+           [3 4]))
     
-    (= (compile-expr '(typed* 9 3) identity)
-       '{:type :number :expr 27})
+    (is (= (compile-expr '(typed* 9 3) identity)
+           '{:type :number :expr 27}))
+
+    (is (= [-1 -2 -3] 
+           (make-expression
+            (compile-expr '(typed- [5 4 3] 6) identity))))
 
     ;(= (compile 
 
