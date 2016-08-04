@@ -2,6 +2,7 @@
 
 (set! *warn-on-reflection* true)
 
+;;;;;;;;;;;;;; UTILITIES
 (defn replace-recursively [replacement-map form]
   (clojure.walk/prewalk
    (fn [x]
@@ -19,6 +20,7 @@
       form))
    replacements)))
 
+;;;;;;;;;;; METHODS AND FUNCTIONS ON TYPES ON THE DATA
 ;; If something is a scalar, in the mathematical sense. Not a vector or so...
 (defn scalar? [x]
   (contains? #{:double :number :ad :complex} (:type x)))
@@ -88,14 +90,10 @@
 (defn make-type-tester [types]
   (assert (valid-type-spec? types))
   (fn [args]
-    (println "args = " args)
     (if (= (count types) (count args))
       (every?
        identity
-       (map (fn [a b]
-              (println " a = " a )
-              (println " b = " b )
-              (test-arg-spec a b))
+       (map test-arg-spec
             types
             args)))))
             
