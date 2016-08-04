@@ -2,13 +2,34 @@
 
 (set! *warn-on-reflection* true)
 
+(defn replace-recursively [replacement-map form]
+  (clojure.walk/prewalk
+   (fn [x]
+     (if (contains? replacement-map x)
+       (get replacement-map x) x))
+   form))
+
+(defmacro templated [symbols replacements form]
+  (cons
+   'do
+   (map 
+   (fn [rp]
+     (replace-recursively
+      (zipmap symbols rp)
+      form))
+   replacements)))
+
+;; If something is a scalar, in the mathematical sense. Not a vector or so...
+(defn scalar? [x]
+  (contains? #{:double :number :ad} (:type x)))
+
 (defmulti make-clojure-data :type :default nil)
 (templated
  [y]
  [[:number] 
   [:double]]
  (defmethod make-clojure-data y [x] (:expr x)))
-(defmethod make-clojure-data :vector [x] (mapv make-expression (:fields x)))
+(defmethod make-clojure-data :vector [x] (mapv make-clojure-data (:fields x)))
 
 
 (defn precompute [x]
@@ -86,23 +107,6 @@
     (make-type-tester (quote ~types))
     (fn [[~@(map second types)] ~cb]
       ~@body)))
-
-(defn replace-recursively [replacement-map form]
-  (clojure.walk/prewalk
-   (fn [x]
-     (if (contains? replacement-map x)
-       (get replacement-map x) x))
-   form))
-
-(defmacro templated [symbols replacements form]
-  (cons
-   'do
-   (map 
-   (fn [rp]
-     (replace-recursively
-      (zipmap symbols rp)
-      form))
-   replacements)))
 
 (templated 
  [left right result]
