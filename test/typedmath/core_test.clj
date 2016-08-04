@@ -68,7 +68,12 @@
     (is (= [2 4 8]
            (make-clojure-data
             (compile-expr '(typed* 2 [1 2 4]) identity))))
-            
+
+    (is (= (drop-data (compile-expr '[1 2 3] identity))
+           {:type :vector, :fields [{:type :number} {:type :number} {:type :number}]}))
+
+    (is (= 3 (flat-size (compile-expr '[1 2 3] identity))))
+    (is (= [1 2 3 4 5] (flat-vector (compile-expr '[1 2 [[3] 4 5]] identity))))
 
     ;(= (compile 
 
