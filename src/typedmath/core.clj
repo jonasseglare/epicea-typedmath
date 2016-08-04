@@ -91,11 +91,6 @@
  (def-typed-inline typed+ [[left a] [right b]] cb
   (cb {:type result
        :expr (precompute `(+ ~(:expr a) ~(:expr b)))})))
-   
-
-(def-typed-inline typed+ [[:number a] [:number b]] cb
-  (cb {:type :number
-       :expr (precompute `(+ ~(:expr a) ~(:expr b)))}))
 
 (defn call-typed-inline [name args cb]
   (if-let [f (find-typed-inline name args)]
