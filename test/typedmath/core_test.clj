@@ -53,7 +53,7 @@
                           {:type :number, :expr 6} 
                           {:type :number, :expr 7}]}))
     (is (= [5 6 7]
-           (eval (make-expression 
+           (eval (make-clojure-data 
                   (compile-expr '(typed+ [1 2 3] 4) identity)))))
 
     (is (= (replace-recursively {:a 3 :b 4} [:a :b])
@@ -63,7 +63,7 @@
            '{:type :number :expr 27}))
 
     (is (= [-1 -2 -3] 
-           (make-expression
+           (make-clojure-data
             (compile-expr '(typed- [5 4 3] 6) identity))))
 
     ;(= (compile 

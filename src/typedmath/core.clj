@@ -2,6 +2,15 @@
 
 (set! *warn-on-reflection* true)
 
+(defmulti make-clojure-data :type :default nil)
+(templated
+ [y]
+ [[:number] 
+  [:double]]
+ (defmethod make-clojure-data y [x] (:expr x)))
+(defmethod make-clojure-data :vector [x] (mapv make-expression (:fields x)))
+
+
 (defn precompute [x]
   (try
     (eval x)
@@ -190,17 +199,7 @@
    (elementwise-left rhs typed*)
    (elementwise-left rhs typed-div)))
 
-
-(defmulti make-expression :type :default nil)
-
-(templated
- [y]
- [[:number] 
-  [:double]]
- (defmethod make-expression y [x] (:expr x)))
-
-(defmethod make-expression :vector [x] (mapv make-expression (:fields x)))
-
+nil
 
 ;(defn compile-exprs [frms]
 ;  (
