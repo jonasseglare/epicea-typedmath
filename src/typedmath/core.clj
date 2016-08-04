@@ -21,7 +21,7 @@
 
 ;; If something is a scalar, in the mathematical sense. Not a vector or so...
 (defn scalar? [x]
-  (contains? #{:double :number :ad} (:type x)))
+  (contains? #{:double :number :ad :complex} (:type x)))
 
 (defmulti make-clojure-data :type :default nil)
 (templated
@@ -78,25 +78,33 @@
   (and (vector? x)
        (every? valid-arg-spec? x)))
 
-(defn make-arg-tester [arg-spec]
+(defn test-arg-spec [arg-spec x]
   (assert (valid-arg-spec? arg-spec))
   (let [[a b] arg-spec]
     (if (keyword? a)
-      (fn [x] (= a (:type x)))
-      a)))
-    
+      (= a (:type x))
+      (a x))))
 
 (defn make-type-tester [types]
   (assert (valid-type-spec? types))
   (fn [args]
+    (println "args = " args)
     (if (= (count types) (count args))
       (every?
        identity
        (map (fn [a b]
-              ((make-arg-tester a) b))
+              (println " a = " a )
+              (println " b = " b )
+              (test-arg-spec a b))
             types
             args)))))
             
+
+(defn quote-symbols [spec]
+  (mapv
+   (fn [[a b]]
+     [a (list 'quote b)])
+   spec))
 
 
 (defmacro def-typed-inline [name types cb & body]
@@ -104,7 +112,7 @@
   (assert (symbol? cb))
   `(add-typed-inline 
     (quote ~name)
-    (make-type-tester (quote ~types))
+    (make-type-tester ~(quote-symbols types))
     (fn [[~@(map second types)] ~cb]
       ~@body)))
 
@@ -193,12 +201,22 @@
         (cb# {:type :vector
               :fields added#})))))
 
+(def-typed-inline typed+ [[:vector a] [scalar? b]] cb
+  (async-map
+   (fn [field cb] 
+     (call-typed-inline 'typed+ [field b] cb))
+   (:fields a)
+   (fn [added]
+     (cb {:type :vector
+          :fields added}))))
+  
+
 (templated 
  [rhs]
  [[:double]
   [:number]]
  (do
-   (elementwise-left rhs typed+)
+   ;(elementwise-left rhs typed+)
    (elementwise-left rhs typed-)
    (elementwise-left rhs typed*)
    (elementwise-left rhs typed-div)))
