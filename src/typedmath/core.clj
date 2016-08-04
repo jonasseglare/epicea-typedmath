@@ -39,25 +39,38 @@
                (get (deref table) name)))]
              fun)))
 
+
+(defn valid-arg-spec? [k] 
+  (and (vector? k)
+       (symbol? (second k))))
+
 (defn valid-type-spec? [x]
   (and (vector? x)
-       (every? (fn [k] (and (vector? k)
-                            (keyword? (first k))
-                            (symbol? (second k)))) x)))
+       (every? valid-arg-spec? x)))
+
+(defn make-arg-tester [arg-spec]
+  (assert (valid-arg-spec? arg-spec))
+  (let [[a b] arg-spec]
+    (if (keyword? a)
+      (fn [x] (= a (:type x)))
+      a)))
+    
 
 (defn make-type-tester [types]
+  (assert (valid-type-spec? types))
   (fn [args]
     (if (= (count types) (count args))
       (every?
-       (fn [[a b]] (= a b))
-       (map vector 
-            (map :type args)
-            (map first types))))))
+       identity
+       (map (fn [a b]
+              (a b))
+            (map make-arg-tester types)
+            args)))))
+            
 
 
 (defmacro def-typed-inline [name types cb & body]
   (assert (symbol? name))
-  (assert (valid-type-spec? types))
   (assert (symbol? cb))
   `(add-typed-inline 
     (quote ~name)
@@ -157,54 +170,25 @@
     (list? x) (compile-list-form x cb)
     :default (RuntimeException. (str "Failed to compile: " x))))
 
-(defmacro elementwise-left [left right op cb]
-  `(async-map
-    (fn [field# cb#] 
-      (call-typed-inline (quote ~op) [field# ~right] cb#))
-    (:fields ~left)
-    (fn [added#]
-      (~cb {:type :vector
-            :fields added#}))))
-  
-  
+(defmacro elementwise-left [rhs op]
+  `(def-typed-inline ~op [[:vector a#] [~rhs b#]] cb#
+     (async-map
+      (fn [field# cb0#] 
+        (call-typed-inline (quote ~op) [field# b#] cb0#))
+      (:fields a#)
+      (fn [added#]
+        (cb# {:type :vector
+              :fields added#})))))
 
 (templated 
  [rhs]
  [[:double]
   [:number]]
  (do
-   (def-typed-inline typed+ [[:vector a] [rhs b]] cb
-     (async-map
-      (fn [field cb] 
-        (call-typed-inline 'typed+ [field b] cb))
-      (:fields a)
-      (fn [added]
-        (cb {:type :vector
-             :fields added}))))
-   (def-typed-inline typed* [[:vector a] [rhs b]] cb
-     (async-map
-      (fn [field cb] 
-        (call-typed-inline 'typed* [field b] cb))
-      (:fields a)
-      (fn [added]
-        (cb {:type :vector
-             :fields added}))))
-   (def-typed-inline typed-div [[:vector a] [rhs b]] cb
-     (async-map
-      (fn [field cb] 
-        (call-typed-inline 'typed-div [field b] cb))
-      (:fields a)
-      (fn [added]
-        (cb {:type :vector
-             :fields added}))))
-   (def-typed-inline typed- [[:vector a] [rhs b]] cb
-     (async-map
-      (fn [field cb] 
-        (call-typed-inline 'typed- [field b] cb))
-      (:fields a)
-      (fn [added]
-        (cb {:type :vector
-             :fields added}))))))
+   (elementwise-left rhs typed+)
+   (elementwise-left rhs typed-)
+   (elementwise-left rhs typed*)
+   (elementwise-left rhs typed-div)))
 
 
 (defmulti make-expression :type :default nil)
