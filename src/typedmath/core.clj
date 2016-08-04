@@ -157,6 +157,17 @@
     (list? x) (compile-list-form x cb)
     :default (RuntimeException. (str "Failed to compile: " x))))
 
+(defmacro elementwise-left [left right op cb]
+  `(async-map
+    (fn [field# cb#] 
+      (call-typed-inline (quote ~op) [field b] cb#))
+    (:fields a)
+    (fn [added#]
+      (cb {:type :vector
+           :fields added#}))))
+  
+  
+
 (templated 
  [rhs]
  [[:double]
