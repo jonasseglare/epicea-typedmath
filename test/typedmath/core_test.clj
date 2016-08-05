@@ -2,9 +2,25 @@
   (:require [clojure.test :refer :all]
             [typedmath.core :refer :all]))
 
+(set! *warn-on-reflection* true)
+
+(def kattskiten 234)
+(println "Calling .toString should give us a reflection warning" (.toString kattskiten))
+
+(deftest type-hinting-test
+  (testing "Hinting"
+    (let [xxy (fn [a b] (+ (* a a) (* b b)))
+          xxy-hinted (fn [^double a ^double b] (+ a b))]
+      (is (not (instance? java.lang.Double (xxy 3 4))))
+      (is (instance? java.lang.Double (xxy-hinted 3 4))))
+    (let [^"[D" A (double-array [3 4 5])]
+      (is (= 4.0 (aget A 1))))
+    (let [^"[D" B (make-array Double/TYPE 3)]
+      (is (instance? java.lang.Double (aget B 0))))))
+
 
 (deftest typedmath-test
-  (testing "FIXME, I fail."
+  (testing "Inlining"
     (add-typed-inline 'dummy 
                       (fn [args]
                         (every? number? args))

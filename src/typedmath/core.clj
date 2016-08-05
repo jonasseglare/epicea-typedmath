@@ -1,5 +1,6 @@
 (ns typedmath.core)
 
+;(set! *warn-on-reflection* true)
 (set! *warn-on-reflection* true)
 
 ;; Core types
@@ -268,6 +269,14 @@
 (elementwise-right typed-)
 (elementwise-right typed*)
 (elementwise-right typed-div)
+
+;;;; Matrices
+(defn make-matrix [dim-expr-fns element-expr-fns element-type]
+  {:type :ndarray
+   :dim-expr-fns dim-expr-fns
+   :element-expr-fns
+   :element-type})
+
 
 nil
 
