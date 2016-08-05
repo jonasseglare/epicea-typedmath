@@ -2,7 +2,23 @@
 
 (set! *warn-on-reflection* true)
 
+;; Core types
+
+;; Represents something not known at compile time.
+(defn make-dynamic [x]
+  {:type :dynamic :expr x})
+
+;; Represents any number on the host platform.
+(defn make-number [x]
+  (assert (number? x))
+  {:type :number :expr x})
+
 ;;;;;;;;;;;;;; UTILITIES
+(defn precompute [x]
+  (try
+    (eval x)
+    (catch Throwable e x)))
+
 (defn replace-recursively [replacement-map form]
   (clojure.walk/prewalk
    (fn [x]
@@ -64,29 +80,6 @@
 (defmethod flat-vector :vector [x] (vec (mapcat flat-vector (:fields x))))
 (defmethod populate :vector [x v]
   (update x :fields #(populate-fields % v)))
-          
-
-
-
-
-
-(defn precompute [x]
-  (try
-    (eval x)
-    (catch Throwable e x)))
-
-;; Represents something not known at compile time.
-(defn make-dynamic [x]
-  {:type :dynamic :expr x})
-
-;; Represents any number on the host platform.
-(defn make-number [x]
-  (assert (number? x))
-  {:type :number :expr x})
-
-(defn make-double [x]
-  (assert (number? x))
-  {:type :double :expr x})
 
 (defn conj-in-map [m key value]
   (if (contains? m key)
@@ -150,28 +143,6 @@
     (fn [[~@(map second types)] ~cb]
       ~@body)))
 
-(templated 
- [left right result]
- [[:number :number :number]
-  [:double :number :number]
-  [:number :double :number]
-  [:double :double :double]]
- (do
-   (def-typed-inline typed+ [[left a] [right b]] cb
-     (cb {:type result
-          :expr (precompute `(unchecked-add ~(:expr a) ~(:expr b)))}))
-   (def-typed-inline typed- [[left a] [right b]] cb
-     (cb {:type result
-          :expr (precompute `(unchecked-subtract ~(:expr a) ~(:expr b)))}))
-   (def-typed-inline typed* [[left a] [right b]] cb
-     (cb {:type result
-          :expr (precompute `(unchecked-multiply ~(:expr a) ~(:expr b)))}))
-   (def-typed-inline typed-div [[left a] [right b]] cb
-     (cb {:type result
-          :expr (precompute `(unchecked-divide ~(:expr a) ~(:expr b)))}))))
-
-
-
 (defn call-typed-inline [name args cb]
   (if-let [f (find-typed-inline name args)]
     (f args cb)
@@ -216,7 +187,6 @@
      args
      (fn [cargs]
        (call-typed-inline name cargs cb)))))
-  
 (defn compile-expr [x cb]
   (cond
     (number? x) (cb (make-number x))
@@ -224,6 +194,51 @@
     (vector? x) (make-vector x cb)
     (list? x) (compile-list-form x cb)
     :default (RuntimeException. (str "Failed to compile: " x))))
+
+
+
+
+
+
+
+
+
+
+          
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;; MORE TYPES
+(defn make-double [x]
+  (assert (number? x))
+  {:type :double :expr x})
+
+(templated 
+ [left right result]
+ [[:number :number :number]
+  [:double :number :number]
+  [:number :double :number]
+  [:double :double :double]]
+ (do
+   (def-typed-inline typed+ [[left a] [right b]] cb
+     (cb {:type result
+          :expr (precompute `(unchecked-add ~(:expr a) ~(:expr b)))}))
+   (def-typed-inline typed- [[left a] [right b]] cb
+     (cb {:type result
+          :expr (precompute `(unchecked-subtract ~(:expr a) ~(:expr b)))}))
+   (def-typed-inline typed* [[left a] [right b]] cb
+     (cb {:type result
+          :expr (precompute `(unchecked-multiply ~(:expr a) ~(:expr b)))}))
+   (def-typed-inline typed-div [[left a] [right b]] cb
+     (cb {:type result
+          :expr (precompute `(unchecked-divide ~(:expr a) ~(:expr b)))}))))
 
 (defmacro elementwise-left [op]
   `(def-typed-inline ~op [[:vector a#] [scalar? b#]] cb#
