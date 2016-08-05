@@ -102,12 +102,11 @@
 
     (is (= (compile-expr '[9 [4 5 6] 7 8 9] identity)
            (populate (drop-data (compile-expr '[0 [0 0 0] 0 0 0] identity))
-                     [9 4 5 6 7 8 9])))
+                     [9 4 5 6 7 8 9])))))
 
-    ;(= (compile 
-
-
-))
+(deftest matrices
+  (testing "Matrices"
+    ))
 
 
 

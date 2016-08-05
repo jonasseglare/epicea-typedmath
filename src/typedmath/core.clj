@@ -270,15 +270,47 @@
 (elementwise-right typed*)
 (elementwise-right typed-div)
 
-;;;; Matrices
-(defn make-ndarray-type [dim-expr-fns element-expr-fns element-type]
-  {:type :ndarray
-   :dim-expr-fns dim-expr-fns
-   :element-expr-fns element-expr-fns
-   :element-type element-type})
+;; ;;;; Matrices
+;; (defn make-ndarray-type [dim-expr-fn element-expr-fns element-type]
+;;   {:type :ndarray
+;;    :dim-expr-fn dim-expr-fn
+;;    :element-expr-fn element-expr-fns
+;;    :element-type element-type
+;;    :oh-of-one-access? true})
 
+;; Runtime type for nd-arrays
 (defrecord NDArray [dims data])
-;(def-inline-static ndarray [[:vector dims] 
+
+(defn acc-index-expr [acc index-expr]
+  {:expr 
+   (precompute 
+    `(unchecked-add 
+     ~index-expr 
+     ~(precompute `(unchecked-multiply ~(first (:dims acc)) ~(:expr acc)))))
+   :dims (rest (:dims acc))})
+
+(defn make-index-expr [inds dims]
+  (assert (vector? inds))
+  (assert (vector? dims))
+  (:expr 
+   (reduce
+    acc-index-expr
+    {:expr 0
+     :dims dims}
+    (reverse inds))))
+  
+
+(def-typed-inline 
+  ndarray [[(fn [_] true) data]] cb
+  (let [dim-expr-fn (fn [dim-index] `(nth (:dims ~data) ~dim-index))]
+    (cb {:type :ndarray
+         :dim-count-expr-fn (fn [] `(count (:dims ~data)))
+         :dim-expr-fn dim-expr-fn
+         :index-fn (fn [& ind-exprs] 
+                     (make-index-expr ind-exprs dim-expr-fn))})))
+       
+                            
+                            
 
 
 nil
