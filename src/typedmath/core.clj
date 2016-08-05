@@ -184,10 +184,14 @@
 (defn compile-list-form [x cb]
   ;; Currently, only typed calls.
   (let [[name & args] x]
-    (compile-exprs 
-     args
-     (fn [cargs]
-       (call-typed-inline name cargs cb)))))
+    (cond
+      (= 'quote name) (first args)
+      :default
+      (compile-exprs 
+       args
+       (fn [cargs]
+         (call-typed-inline name cargs cb))))))
+
 (defn compile-expr [x cb]
   (cond
     (number? x) (cb (make-number-type x))
@@ -296,18 +300,25 @@
    (reduce
     acc-index-expr
     {:expr 0
-     :dims dims}
+     :dims (reverse dims)}
     (reverse inds))))
   
+(defn get-primitive [x]
+  (let [x (flat-vector x)]
+    (assert (= 1 (count x)))
+    (first x)))
 
-(def-typed-inline 
-  ndarray [[(fn [_] true) data]] cb
-  (let [dim-expr-fn (fn [dim-index] `(nth (:dims ~data) ~dim-index))]
-    (cb {:type :ndarray
-         :dim-count-expr-fn (fn [] `(count (:dims ~data)))
-         :dim-expr-fn dim-expr-fn
-         :index-fn (fn [& ind-exprs] 
-                     (make-index-expr ind-exprs dim-expr-fn))})))
+;; (def-typed-inline 
+;;   ndarray [[number? dim-count] [(fn [_] true) data]] cb
+;;   (let [dim-expr-fn (fn [dim-index] `(nth (:dims ~data) ~dim-index))]
+;;     (assert (number? (:expr dim-count)))
+;;     (cb {:type :ndarray
+         
+;;          ;; The number of dimensions is assumed to be known at compile time.
+;;          :dim-count (get-primitive dim-count)
+;;          :dim-expr-fn dim-expr-fn
+;;          :index-fn (fn [& ind-exprs] 
+;;                      (make-index-expr ind-exprs dim-expr-fn))})))
        
                             
                             

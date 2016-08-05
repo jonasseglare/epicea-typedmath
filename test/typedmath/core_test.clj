@@ -102,11 +102,18 @@
 
     (is (= (compile-expr '[9 [4 5 6] 7 8 9] identity)
            (populate (drop-data (compile-expr '[0 [0 0 0] 0 0 0] identity))
-                     [9 4 5 6 7 8 9])))))
+                     [9 4 5 6 7 8 9])))
+    (is (= 3 (get-primitive {:type :number :expr 3})))
+    (is (= {:a 3} (compile-expr ''{:a 3} identity)))
+    (is (= {:a 3} (compile-expr '(quote {:a 3}) identity)))
+))
+
 
 (deftest matrices
   (testing "Matrices"
-    ))
+    (is (= (+ 1 (* 2 3)) 
+           (make-index-expr [1 2] [3 4])))))
+
 
 
 
