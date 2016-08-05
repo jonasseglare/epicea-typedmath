@@ -6,11 +6,11 @@
 ;; Core types
 
 ;; Represents something not known at compile time.
-(defn make-dynamic [x]
+(defn make-dynamic-type [x]
   {:type :dynamic :expr x})
 
 ;; Represents any number on the host platform.
-(defn make-number [x]
+(defn make-number-type [x]
   (assert (number? x))
   {:type :number :expr x})
 
@@ -190,8 +190,8 @@
        (call-typed-inline name cargs cb)))))
 (defn compile-expr [x cb]
   (cond
-    (number? x) (cb (make-number x))
-    (symbol? x) (cb (make-dynamic x))
+    (number? x) (cb (make-number-type x))
+    (symbol? x) (cb (make-dynamic-type x))
     (vector? x) (make-vector x cb)
     (list? x) (compile-list-form x cb)
     :default (RuntimeException. (str "Failed to compile: " x))))
@@ -271,11 +271,14 @@
 (elementwise-right typed-div)
 
 ;;;; Matrices
-(defn make-matrix [dim-expr-fns element-expr-fns element-type]
+(defn make-ndarray-type [dim-expr-fns element-expr-fns element-type]
   {:type :ndarray
    :dim-expr-fns dim-expr-fns
-   :element-expr-fns
-   :element-type})
+   :element-expr-fns element-expr-fns
+   :element-type element-type})
+
+(defrecord NDArray [dims data])
+;(def-inline-static ndarray [[:vector dims] 
 
 
 nil

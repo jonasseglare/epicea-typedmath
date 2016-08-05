@@ -44,7 +44,7 @@
            {:type :number
             :expr 7}))
 
-    (is (= {:type :number :expr 9}) (make-number 9))
+    (is (= {:type :number :expr 9}) (make-number-type 9))
     (is (= [{:type :number :value 9} {:type :number :value 11}])
         (compile-exprs [9 11] identity))
 
