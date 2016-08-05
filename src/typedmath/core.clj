@@ -159,16 +159,16 @@
  (do
    (def-typed-inline typed+ [[left a] [right b]] cb
      (cb {:type result
-          :expr (precompute `(+ ~(:expr a) ~(:expr b)))}))
+          :expr (precompute `(unchecked-add ~(:expr a) ~(:expr b)))}))
    (def-typed-inline typed- [[left a] [right b]] cb
      (cb {:type result
-          :expr (precompute `(- ~(:expr a) ~(:expr b)))}))
+          :expr (precompute `(unchecked-subtract ~(:expr a) ~(:expr b)))}))
    (def-typed-inline typed* [[left a] [right b]] cb
      (cb {:type result
-          :expr (precompute `(* ~(:expr a) ~(:expr b)))}))
+          :expr (precompute `(unchecked-multiply ~(:expr a) ~(:expr b)))}))
    (def-typed-inline typed-div [[left a] [right b]] cb
      (cb {:type result
-          :expr (precompute `(/ ~(:expr a) ~(:expr b)))}))))
+          :expr (precompute `(unchecked-divide ~(:expr a) ~(:expr b)))}))))
 
 
 
