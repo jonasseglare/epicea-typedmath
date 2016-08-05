@@ -7,4 +7,6 @@
     (is (= '(:typedmath.index-loop/add 
              (:typedmath.index-loop/mul 
               3 9 (:typedmath.index-loop/add 4 5)) 4)
-           (standardize '(+ (* 3 9 (+ 4 5)) 4))))))
+           (standardize '(+ (* 3 9 (+ 4 5)) 4))))
+    (is (= (flatten-sub-expr '(:typedmath.index-loop/add a b))
+           '(:typedmath.index-loop/add a b)))))
