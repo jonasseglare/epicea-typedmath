@@ -274,14 +274,6 @@
 (elementwise-right typed*)
 (elementwise-right typed-div)
 
-;; ;;;; Matrices
-;; (defn make-ndarray-type [dim-expr-fn element-expr-fns element-type]
-;;   {:type :ndarray
-;;    :dim-expr-fn dim-expr-fn
-;;    :element-expr-fn element-expr-fns
-;;    :element-type element-type
-;;    :oh-of-one-access? true})
-
 ;; Runtime type for nd-arrays
 (defrecord NDArray [dims data])
 
@@ -308,19 +300,64 @@
     (assert (= 1 (count x)))
     (first x)))
 
-;; (def-typed-inline 
-;;   ndarray [[number? dim-count] [(fn [_] true) data]] cb
-;;   (let [dim-expr-fn (fn [dim-index] `(nth (:dims ~data) ~dim-index))]
-;;     (assert (number? (:expr dim-count)))
-;;     (cb {:type :ndarray
-         
-;;          ;; The number of dimensions is assumed to be known at compile time.
-;;          :dim-count (get-primitive dim-count)
-;;          :dim-expr-fn dim-expr-fn
-;;          :index-fn (fn [& ind-exprs] 
-;;                      (make-index-expr ind-exprs dim-expr-fn))})))
-       
-                            
+(defn numeric-constant? [x]
+  (number? (:expr x)))
+
+(defn get-numeric-constant [x]
+  (:expr x))
+
+(defn always-true [x] true)
+
+;; (def-typed-inline ndarray [[numeric-constant? dim-count]
+;;                            [always-true element-type]
+;;                            [:dynamic src]] cb
+;;   (cb {:type :ndarray
+;;        :dim-count (get-numeric-constant dim-count)
+;;        :dims-expr-fn (fn [] `(:dims ~src))
+;;        :dim-expr-fn (fn [index] `(nth (:dims ~src) ~index))
+;;        :index-expr-fn (fn [inds] )}))
+
+(def-typed-inline typed+ [[:ndarray A]
+                          [:ndarray B]] cb
+  (cb {:type :add
+       :left A
+       :right B}))
+
+(def-typed-inline typed* [[:ndarray A]
+                          [:ndarray B]] cb
+  (cb {:type :matmul
+       :left A
+       :right B}))
+
+(def-typed-inline typed- [[:ndarray A]
+                          [:ndarray B]] cb
+  (cb {:type :sub
+       :left A
+       :right B}))
+
+(def-typed-inline typed- [[:ndarray A]] cb
+  (cb {:type :neg
+       :value A}))
+
+(def-typed-inline typed-transpose [[:ndarray A]] cb
+  (cb {:type :transpose
+       :value A}))
+
+;; The second argument is the callback, and that callback gets called for every
+;; element that is evaluated.
+(defmulti evaluate-mat-expr (fn [a _] (:type a)))
+
+(defn evaluate-mat-add-1 [A B cb]
+  (cb :nothing))
+
+(defmethod evaluate-mat-expr :add [expr cb]
+  (let [{:keys [A B]} expr]
+    (assert (= (:dims A) (:dims B)))
+    (if (= 1 (:dims A))
+      (evaluate-mat-add-1 A B cb))))
+             
+
+
                             
 
 

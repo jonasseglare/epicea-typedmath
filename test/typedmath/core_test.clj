@@ -112,7 +112,10 @@
 (deftest matrices
   (testing "Matrices"
     (is (= (+ 1 (* 2 3)) 
-           (make-index-expr [1 2] [3 4])))))
+           (make-index-expr [1 2] [3 4])))
+
+
+))
 
 
 
