@@ -218,7 +218,7 @@
   (cond
     (number? x) (cb2 context (make-number-type x))
     (symbol? x) (cb2 context (make-dynamic-type x))
-    (vector? x) (make-vector context x cb2)
+    (vector? x) (make-vector context x (pass-on-context context cb2))
     (list? x) (compile-list-form context x cb2)
     :default (RuntimeException. (str "Failed to compile: " x))))
 
