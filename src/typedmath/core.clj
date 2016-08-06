@@ -16,7 +16,7 @@
      (println (str "Value of " ~(str x) " is " value#))
      value#))
 
-(defn always-true [x] true)
+(defn dont-care [x] true)
 
 ;(set! *warn-on-reflection* true)
 (set! *warn-on-reflection* true)
@@ -170,7 +170,7 @@
     (fn [[~@(map second types)] ~cb]
       ~@body)))
 
-(def-typed-inline output-value [[always-true x]] cb
+(def-typed-inline output-value [[dont-care x]] cb
   (cb (make-clojure-data x)))
 
 (defn call-typed-inline [name args cb]
@@ -263,8 +263,6 @@
 
 
 (defn compile-list-form [context0 x cb2]
-  ;; Currently, only typed calls.
-
   (let [[name & args] x]
     ;; First thing to try: Is it quoted?
     (if (= 'quote name) 
@@ -283,6 +281,9 @@
              (typed-inline cargs (pass-on-context context1 cb2))
 
              ;; Fourth thing: Try to invoke it as a regular function.
+             ;; Checking whether such a function exists might not be easy
+             ;; because it could be a bound local variable in the enclosing
+             ;; expression.
              (cb2 context1 
                   (make-dynamic-type ;; Tag it as dynamic type: We don't know
                                      ;; what the function returns.
@@ -445,7 +446,7 @@
   (:expr x))
 
 ;; (def-typed-inline ndarray [[numeric-constant? dim-count]
-;;                            [always-true element-type]
+;;                            [dont-care element-type]
 ;;                            [:dynamic src]] cb
 ;;   (cb {:type :ndarray
 ;;        :dim-count (get-numeric-constant dim-count)
