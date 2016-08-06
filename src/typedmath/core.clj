@@ -61,6 +61,10 @@
 
 (defmulti make-from-data (fn [x sym cb] (:type x)))
 
+(defn sized-vector [type n]
+  {:type :vector
+   :fields (repeat n type)})
+
 ;; Everything that in reality can be represented using just one primitive.
 (templated
  [y]
@@ -220,9 +224,10 @@
   (assoc-in context [:bindings sym] x))
 
 (defn compile-spec [context args cb2]
-  (let [[type-spec sym] args]
+  (let [[type-spec0 sym] args
+        type-spec (eval type-spec0)]
     (make-from-data 
-     (eval type-spec) sym 
+     type-spec sym 
      (fn [value]
        (assert (map? type-spec))
        (if (symbol? sym)

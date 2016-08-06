@@ -140,6 +140,15 @@
                                      {:type :number} 
                                      {:type :number}]} A)))))
            [10 11 12 13]))
+    (is (= (sized-vector {:type :number} 3)
+           '{:type :vector, :fields ({:type :number} {:type :number} {:type :number})}))
+
+    (is (= (let [A [3 4 5]]
+             (statically 
+              (to-data
+               (typed+
+                9 (specify (sized-vector {:type :number} 3) A)))))
+           [12 13 14]))
 ))
 
 
