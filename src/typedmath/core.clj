@@ -214,7 +214,7 @@
          (call-typed-inline name cargs (pass-on-context context cb2)))))))
 
 
-(defn compile-expr [context x cb2]
+(defn compile-expr2 [context x cb2]
   (cond
     (number? x) (cb2 context (make-number-type x))
     (symbol? x) (cb2 context (make-dynamic-type x))
@@ -223,7 +223,7 @@
     :default (RuntimeException. (str "Failed to compile: " x))))
 
 (defn compile-expr1 [context x cb1]
-  (compile-expr context x (fn [_ out] (cb1 out))))
+  (compile-expr2 context x (fn [_ out] (cb1 out))))
 
 
 
@@ -415,7 +415,7 @@
 (defn statically-sub [context forms]
   (if (empty? forms)
     nil
-    (compile-expr 
+    (compile-expr2 
      {}
      (first forms)
      (fn [next-context x]
