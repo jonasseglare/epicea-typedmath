@@ -278,6 +278,11 @@
   (assert (number? x))
   {:type :double :expr x})
 
+(defn make-num-from-sym [spec x]
+  (assoc spec :expr x))
+(defmethod make-from-sym :number [spec x] (make-num-from-sym spec x))
+(defmethod make-from-sym :double [spec x] (make-num-from-sym spec x))
+
 (templated 
  [left right result]
  [[:number :number :number]
