@@ -224,7 +224,7 @@
         value (make-from-sym type-spec sym)]
     (assert (map? type-spec))
     (assert (symbol? sym))
-    (cb2 (bind-context context sym value) value)))
+    (cb2 (disp (bind-context context sym value)) value)))
 
 (defn compile-list-form [context x cb2]
   ;; Currently, only typed calls.
@@ -242,11 +242,18 @@
           name cargs 
           (fn [x] (cb2 next-context x))))))))
 
+(defn compile-symbol [context x]
+  (disp context)
+  (let [b (:bindings context)]
+    (if (contains? b x)
+      (get b x)
+      (make-dynamic-type x))))
+
 
 (defn compile-expr2 [context x cb2]
   (cond
     (number? x) (cb2 context (make-number-type x))
-    (symbol? x) (cb2 context (make-dynamic-type x))
+    (symbol? x) (cb2 context (compile-symbol context x))
     (vector? x) (make-vector context x cb2)
     (list? x) (compile-list-form context x cb2)
     :default (RuntimeException. (str "Failed to compile: " x))))
@@ -441,12 +448,14 @@
       (evaluate-mat-add-1 A B cb))))
 
 (defn statically-sub [context forms]
+  (println "Context in statically sub: " context)
   (if (empty? forms)
     nil
     (compile-expr2 
-     {}
+     context
      (first forms)
      (fn [next-context x]
+       (println "The next context is " next-context)
        (let [k (rest forms)]
          (if (empty? k) x
              (statically-sub next-context k)))))))
