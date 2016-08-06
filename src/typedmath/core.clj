@@ -1,5 +1,10 @@
 (ns typedmath.core)
 
+(defmacro disp [x]
+  `(let [value# ~x] 
+     (println (str "Value of " ~(str x) " is " value#))
+     value#))
+
 ;(set! *warn-on-reflection* true)
 (set! *warn-on-reflection* true)
 
@@ -311,13 +316,15 @@
         dim-symbols (take dim-count (repeatedly gensym))
         dim-exprs (conj dim-symbols elem-size)
         data-symbol (gensym)
-        index-fn (fn [inds] (make-index-expr inds dim-exprs))
-        get-primitive-expr (fn [inds] `(aget ~inds ~dim-exprs))
-        get-flat-element (fn [inds] (map (fn [i] (get-primitive-expr
-                                                     (conj i inds)
-                                                     dim-exprs))
-                                            (range elem-size)))
-        get-element (fn [inds] (populate elem-type (get-flat-element inds)))]
+        index-fn (fn [inds] (make-index-expr (vec inds) (vec dim-exprs)))
+        get-primitive-expr (fn [inds] 
+                             `(aget ~data-symbol ~(index-fn inds)))
+        get-flat-element (fn [inds] 
+                           (map (fn [i] 
+                                  (get-primitive-expr
+                                   (conj inds i)))
+                                (range elem-size)))
+        get-element (fn [inds] (populate elem-type (disp (vec (get-flat-element inds)))))]
     `(let [^"[D" ~data-symbol (:data ~sym)
            ~size-symbol (:dims ~sym)
            ~@(mapcat (fn [x y] [^int x y]) dim-symbols dims)]

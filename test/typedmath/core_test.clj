@@ -119,6 +119,7 @@
                 3 {:type :number} 'A 
                 (fn [x]
                   (reset! called true)
+                  (println "Element 1 2 is: " ((:get-element-fn x) [1 2]))
                   (is (map? x))))]
       (is (seq? expr))
       (is (deref called)))
