@@ -18,4 +18,9 @@
              (:typedmath.index-loop/mul 3 5) 
              (:typedmath.index-loop/mul 3 6) 
              (:typedmath.index-loop/mul 4 5) 
-             (:typedmath.index-loop/mul 4 6))))))
+             (:typedmath.index-loop/mul 4 6))))
+
+    (let [state (atom [])]
+      (index-loop [i 4]
+                  (swap! state #(conj % i)))
+      (is (= (deref state) [0 1 2 3])))))
