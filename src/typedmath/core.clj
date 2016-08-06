@@ -181,7 +181,6 @@
              exprs
              cb))
 
-
 (defn make-vector [context v0 cb]
   (compile-exprs 
    context
@@ -407,6 +406,7 @@
   (if (empty? forms)
     nil
     (compile-expr 
+     {}
      (first forms)
      (fn [x]
        (let [k (rest forms)]
