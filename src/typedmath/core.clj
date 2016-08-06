@@ -170,7 +170,7 @@
     (fn [[~@(map second types)] ~cb]
       ~@body)))
 
-(def-typed-inline to-data [[always-true x]] cb
+(def-typed-inline output-value [[always-true x]] cb
   (cb (make-clojure-data x)))
 
 (defn call-typed-inline [name args cb]

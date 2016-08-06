@@ -106,14 +106,14 @@
     (is (= 3 (get-primitive {:type :number :expr 3})))
     (is (= {:a 3} (compile-expr1 {} ''{:a 3} identity)))
     (is (= {:a 3} (compile-expr1 {} '(quote {:a 3}) identity)))
-    (is (= (statically (to-data [3 4 5]))
+    (is (= (statically (output-value [3 4 5]))
            [3 4 5]))
     (is (= (statically [3 4 5])
            {:type :vector
             :fields [{:type :number, :expr 3} 
                      {:type :number, :expr 4} 
                      {:type :number, :expr 5}]}))
-    (is (= [4 5 6] (statically (to-data (typed+ 1 [3 4 5])))))
+    (is (= [4 5 6] (statically (output-value (typed+ 1 [3 4 5])))))
     (is (= (bind-context {} 'rulle {:type :number :expr 3})
            {:bindings {'rulle {:type :number :expr 3}}}))
     (is (= (let [a 9] (statically (input-value {:type :number} a) a))
@@ -132,7 +132,7 @@
            {:type :double, :expr 7}))
     (is (= (let [A [1 2 3 4]]
              (statically 
-              (to-data
+              (output-value
                (typed+ 
                 9 (input-value {:type :vector 
                             :fields [{:type :number} 
@@ -145,13 +145,13 @@
 
     (is (= (let [A [3 4 5]]
              (statically 
-              (to-data
+              (output-value
                (typed+
                 9 (input-value (sized-vector {:type :number} 3) A)))))
            [12 13 14]))
 
     (is (= (Math/sin (* 0.25 Math/PI))
-           (statically (to-data (Math/sin (* 0.25 Math/PI))))))
+           (statically (output-value (Math/sin (* 0.25 Math/PI))))))
 
 ))
 
