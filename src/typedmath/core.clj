@@ -224,7 +224,7 @@
         value (make-from-sym type-spec sym)]
     (assert (map? type-spec))
     (assert (symbol? sym))
-    (cb2 (disp (bind-context context sym value)) value)))
+    (cb2 (bind-context context sym value) value)))
 
 (defn compile-list-form [context x cb2]
   ;; Currently, only typed calls.
@@ -243,7 +243,6 @@
           (fn [x] (cb2 next-context x))))))))
 
 (defn compile-symbol [context x]
-  (disp context)
   (let [b (:bindings context)]
     (if (contains? b x)
       (get b x)
@@ -455,7 +454,7 @@
      (first forms)
      (fn [next-context x]
        (let [k (rest forms)]
-         (if (empty? k) (list 'quote x)
+         (if (empty? k) x
              (statically-sub next-context k)))))))
 
 (defmacro statically [& frms]
