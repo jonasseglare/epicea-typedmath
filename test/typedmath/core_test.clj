@@ -113,6 +113,7 @@
             :fields [{:type :number, :expr 3} 
                      {:type :number, :expr 4} 
                      {:type :number, :expr 5}]}))
+    (is (= [4 5 6] (statically (to-data (typed+ 1 [3 4 5])))))
 ))
 
 
