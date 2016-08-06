@@ -1,5 +1,12 @@
 (ns typedmath.core)
 
+;; TODOs
+;;   * type hint as many let-assignments as possible
+;;   * implement 'to-data' for common matrix types
+;;   * to-native-floats/from-native-floats
+;;   * flatten nested let's and simplify but not beyond loops and functions.
+
+
 (defn compilation-error [& s]
   (throw (RuntimeException. (apply str s))))
 
@@ -263,7 +270,7 @@
     (symbol? x) (cb2 context (compile-symbol context x))
     (vector? x) (make-vector context x cb2)
     (list? x) (compile-list-form context x cb2)
-    :default (RuntimeException. (str "Failed to compile: " x))))
+    :default (compilation-error "Failed to compile: " x)))
 
 (defn compile-expr1 [context x cb1]
   (compile-expr2 context x (fn [_ out] (cb1 out))))
@@ -291,7 +298,7 @@
 (defmethod make-from-data :vector [spec x cb] 
   (async-map (fn [[field i] cb]
                (let [s (gensym)]
-               `(let [~s (nth ~x ~i)]
+               `(let [~s (nth ~x ~i)] ;; TODO: Type hint s here based on the type of field?
                   ~(make-from-data field s cb))))
              (map vector (:fields spec) (range (count (:fields spec))))
              (fn [result]
