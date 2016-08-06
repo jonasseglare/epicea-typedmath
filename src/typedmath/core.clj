@@ -231,7 +231,17 @@
 (defn bind-context [context sym x]
   (assoc-in context [:bindings sym] x))
 
-(defn compile-spec [context args cb2]
+(let [table (atom {})]
+  (defn add-call-by-expr [name fun]
+    (swap! table #(assoc % name fun)))
+  (defn find-call-by-expr [name]
+    (get (deref table) name)))
+
+(defmacro def-call-by-expr [name args & body]
+  `(add-call-by-expr (quote ~name) (fn [~@args] ~@body)))
+
+
+(def-call-by-expr from-data [context args cb2]
   (let [[type-spec0 sym] args
         type-spec (eval type-spec0)]
     (make-from-data 
@@ -241,19 +251,6 @@
        (if (symbol? sym)
          (cb2 (bind-context context sym value) value)
          (cb2 context value))))))
-
-(let [table (atom {})]
-  (defn add-call-by-expr [name fun]
-    (swap! table #(assoc % name fun)))
-  (defn find-call-by-expr [name]
-    (get (deref table) name)))
-
-(defmacro def-call-by-expr [name args & body]
-  `(add-call-by-expr ~name (fn [~args] ~@body)))
-
-
-(defn attempt-call-by-expr [context name args cb2]
-  ((find-call-by-expr name) context args cb2))
 
 (defn attempt-call-typed-inline [context name args cb2]
   (compile-exprs 
@@ -266,10 +263,14 @@
 
 (defn compile-list-form [context x cb2]
   ;; Currently, only typed calls.
-  (let [[name & args] x]
+
+  (let [[name & args] x
+        call-by-expr (find-call-by-expr name)]
     (cond
-      (= 'from-data name) (compile-spec context args cb2)
       (= 'quote name) (first args)
+
+       ;; TODO: Looking up twice here...
+      call-by-expr (call-by-expr context args cb2)
 
       :default
       (attempt-call-typed-inline context name args cb2))))
