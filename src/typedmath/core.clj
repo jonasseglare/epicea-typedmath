@@ -222,7 +222,7 @@
 (defn compile-spec [context args cb2]
   (let [[type-spec sym] args]
     (make-from-data 
-     type-spec sym 
+     (eval type-spec) sym 
      (fn [value]
        (assert (map? type-spec))
        (if (symbol? sym)
