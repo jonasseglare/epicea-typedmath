@@ -289,6 +289,8 @@
   (assoc spec :expr x))
 (defmethod make-from-sym :number [spec x] (make-num-from-sym spec x))
 (defmethod make-from-sym :double [spec x] (make-num-from-sym spec x))
+;(defmethod make-from-sym :vector [spec x] 
+
 
 (templated 
  [left right result]
