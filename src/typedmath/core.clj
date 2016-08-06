@@ -1,5 +1,8 @@
 (ns typedmath.core)
 
+(defn compilation-error [& s]
+  (throw (RuntimeException. (apply str s))))
+
 (defmacro disp [x]
   `(let [value# ~x] 
      (println (str "Value of " ~(str x) " is " value#))
@@ -157,8 +160,8 @@
 (defn call-typed-inline [name args cb]
   (if-let [f (find-typed-inline name args)]
     (f args cb)
-    (RuntimeException.
-     (str "Didn't find function named " name " for arguments " args))))
+    (compilation-error
+     "Didn't find function named " name " for arguments " args)))
 
 (declare compile-expr)
 (declare compile-expr1)
@@ -194,9 +197,6 @@
   ;;            cb))
 
 (defn make-vector [context v0 cb2]
-  (disp context)
-  (disp v0)
-  (disp cb2)
   (compile-exprs 
    context
    v0 (fn [c2 v] (cb2 c2 {:type :vector :fields v}))))
@@ -359,7 +359,7 @@
                                   (get-primitive-expr
                                    (conj inds i)))
                                 (range elem-size)))
-        get-element (fn [inds] (populate elem-type (disp (vec (get-flat-element inds)))))]
+        get-element (fn [inds] (populate elem-type (vec (get-flat-element inds))))]
     `(let [^"[D" ~data-symbol (:data ~sym)
            ~size-symbol (:dims ~sym)
            ~@(mapcat (fn [x y] [^int x y]) dim-symbols dims)]
