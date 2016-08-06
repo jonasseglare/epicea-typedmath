@@ -59,7 +59,7 @@
 ;(defn flat-size [x] (count (flat-vector x)))
 (defmulti populate (fn [x v] (:type x)))
 
-(defmulti make-from-sym (fn [x sym cb] (:type x)))
+(defmulti make-from-data (fn [x sym cb] (:type x)))
 
 ;; Everything that in reality can be represented using just one primitive.
 (templated
@@ -221,7 +221,7 @@
 
 (defn compile-spec [context args cb2]
   (let [[type-spec sym] args]
-    (make-from-sym 
+    (make-from-data 
      type-spec sym 
      (fn [value]
        (assert (map? type-spec))
@@ -271,14 +271,6 @@
 
 
 
-          
-
-
-
-
-
-
-
 
 
 
@@ -289,10 +281,16 @@
 
 (defn make-num-from-sym [spec x]
   (assoc spec :expr x))
-(defmethod make-from-sym :number [spec x cb] (cb (make-num-from-sym spec x)))
-(defmethod make-from-sym :double [spec x cb] (cb (make-num-from-sym spec x)))
-;(defmethod make-from-sym :vector [spec x] 
-
+(defmethod make-from-data :number [spec x cb] (cb (make-num-from-sym spec x)))
+(defmethod make-from-data :double [spec x cb] (cb (make-num-from-sym spec x)))
+(defmethod make-from-data :vector [spec x cb] 
+  (async-map (fn [[field i] cb]
+               (let [s (gensym)]
+               `(let [~s (nth ~x ~i)]
+                  ~(make-from-data field s cb))))
+             (map vector (:fields spec) (range (count (:fields spec))))
+             (fn [result]
+               (cb (assoc spec :fields result)))))
 
 (templated 
  [left right result]

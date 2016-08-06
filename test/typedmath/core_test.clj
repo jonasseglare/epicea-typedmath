@@ -130,6 +130,16 @@
     (is (= (statically (typed+ (specify {:type :double} 3) 
                                (specify {:type :double} 4)))
            {:type :double, :expr 7}))
+    (is (= (let [A [1 2 3 4]]
+             (statically 
+              (to-data
+               (typed+ 
+                9 (specify {:type :vector 
+                            :fields [{:type :number} 
+                                     {:type :number} 
+                                     {:type :number} 
+                                     {:type :number}]} A)))))
+           [10 11 12 13]))
 ))
 
 
