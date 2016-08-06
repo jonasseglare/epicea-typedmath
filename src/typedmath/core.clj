@@ -174,18 +174,32 @@
 (defn async-map [f args cb]
   (async-map-sub f args [] cb))
 
+(defn compile-exprs-sub [acc context exprs cb]
+  (if (empty? exprs)
+    (cb context acc )
+    (compile-expr2 
+     context 
+     (first exprs)
+     (fn [next-context x]
+       (compile-exprs-sub (conj acc x) next-context (rest exprs) cb)))))
+
 ;; Used to compile a sequence of exprs. The compiled
 ;; exprs are passed as a vector to the callback cb.
 (defn compile-exprs [context exprs cb]
-  (async-map (fn [x cb] 
-               (compile-expr1 context x cb))
-             exprs
-             cb))
+  (compile-exprs-sub [] context exprs cb))
 
-(defn make-vector [context v0 cb]
+  ;; (async-map (fn [x cb] 
+  ;;              (compile-expr1 context x cb))
+  ;;            exprs
+  ;;            cb))
+
+(defn make-vector [context v0 cb2]
+  (disp context)
+  (disp v0)
+  (disp cb2)
   (compile-exprs 
    context
-   v0 (fn [v] (cb {:type :vector :fields v}))))
+   v0 (fn [c2 v] (cb2 c2 {:type :vector :fields v}))))
 
 (defn typed-inline-call? [x]
   (and (seq? x)
@@ -210,15 +224,17 @@
       (compile-exprs 
        context
        args
-       (fn [cargs]
-         (call-typed-inline name cargs (pass-on-context context cb2)))))))
+       (fn [next-context cargs]
+         (call-typed-inline 
+          name cargs 
+          (fn [x] (cb2 next-context x))))))))
 
 
 (defn compile-expr2 [context x cb2]
   (cond
     (number? x) (cb2 context (make-number-type x))
     (symbol? x) (cb2 context (make-dynamic-type x))
-    (vector? x) (make-vector context x (pass-on-context context cb2))
+    (vector? x) (make-vector context x cb2)
     (list? x) (compile-list-form context x cb2)
     :default (RuntimeException. (str "Failed to compile: " x))))
 

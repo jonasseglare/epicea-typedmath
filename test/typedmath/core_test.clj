@@ -46,7 +46,7 @@
 
     (is (= {:type :number :expr 9}) (make-number-type 9))
     (is (= [{:type :number :value 9} {:type :number :value 11}])
-        (compile-exprs {} [9 11] identity))
+        (compile-exprs {} [9 11] (fn [_ x] x)))
 
     (is (= [:this-is-a-number {:type :number :expr 9}]
                (compile-expr1 {} 9 (fn [x] [:this-is-a-number x]))))
