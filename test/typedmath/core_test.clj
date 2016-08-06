@@ -59,10 +59,10 @@
                                          [{:type :number, :expr 1} 
                                           {:type :number, :expr 2}]} 
                                         {:type :number, :expr 3}]}))
-    (is (= (compile-expr {} '(typed+ 1 2) identity)
+    (is (= (compile-expr1 {} '(typed+ 1 2) identity)
                {:type :number, :expr 3}))
 
-    (is (= (compile-expr {} '(typed+ [1 2 3] 4) identity)
+    (is (= (compile-expr1 {} '(typed+ [1 2 3] 4) identity)
                '{:type :vector, 
                  :fields [{:type :number, 
                            :expr 5} 
@@ -70,30 +70,30 @@
                           {:type :number, :expr 7}]}))
     (is (= [5 6 7]
            (eval (make-clojure-data 
-                  (compile-expr {} '(typed+ [1 2 3] 4) identity)))))
+                  (compile-expr1 {} '(typed+ [1 2 3] 4) identity)))))
 
     (is (= (replace-recursively {:a 3 :b 4} [:a :b])
            [3 4]))
     
-    (is (= (compile-expr {} '(typed* 9 3) identity)
+    (is (= (compile-expr1 {} '(typed* 9 3) identity)
            '{:type :number :expr 27}))
 
     (is (= [-1 -2 -3] 
            (make-clojure-data
-            (compile-expr {} '(typed- [5 4 3] 6) identity))))
+            (compile-expr1 {} '(typed- [5 4 3] 6) identity))))
     (is (= [2 4 8]
            (make-clojure-data
-            (compile-expr {} '(typed* 2 [1 2 4]) identity))))
+            (compile-expr1 {} '(typed* 2 [1 2 4]) identity))))
 
-    (is (= (drop-data (compile-expr {} '[1 2 3] identity))
+    (is (= (drop-data (compile-expr1 {} '[1 2 3] identity))
            {:type :vector, :fields [{:type :number} {:type :number} {:type :number}]}))
 
-    (is (= 3 (flat-size (compile-expr {} '[1 2 3] identity))))
-    (is (= [1 2 3 4 5] (flat-vector (compile-expr {} '[1 2 [[3] 4 5]] identity))))
+    (is (= 3 (flat-size (compile-expr1 {} '[1 2 3] identity))))
+    (is (= [1 2 3 4 5] (flat-vector (compile-expr1 {} '[1 2 [[3] 4 5]] identity))))
 
     (is (= (populate {:type :number} [9])
            {:type :number :expr 9}))
-    (let [my-type (drop-data (compile-expr {} '[1 [2 3]] identity))]
+    (let [my-type (drop-data (compile-expr1 {} '[1 [2 3]] identity))]
       (is (= my-type {:type :vector, :fields 
                       [{:type :number} {:type :vector, :fields 
                                         [{:type :number} {:type :number}]}]}))
@@ -101,7 +101,7 @@
              (populate my-type [9 20 119]))))
 
     (is (= (compile-expr1 {} '[9 [4 5 6] 7 8 9] identity)
-           (populate (drop-data (compile-expr {} '[0 [0 0 0] 0 0 0] identity))
+           (populate (drop-data (compile-expr1 {} '[0 [0 0 0] 0 0 0] identity))
                      [9 4 5 6 7 8 9])))
     (is (= 3 (get-primitive {:type :number :expr 3})))
     (is (= {:a 3} (compile-expr1 {} ''{:a 3} identity)))
