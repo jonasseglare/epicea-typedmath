@@ -221,7 +221,7 @@
 
 (defn compile-spec [context args cb2]
   (let [[type-spec sym] args
-        value ( type-spec sym)]
+        value (make-from-sym type-spec sym)]
     (assert (map? type-spec))
     (assert (symbol? sym))
     (cb2 (bind-context context sym value) value)))
