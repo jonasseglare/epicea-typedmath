@@ -194,10 +194,16 @@
 (defn make-typed-inline-call [[name & args] cb]
   (call-typed-inline name args cb))
 
+(declare specify)
+
+(defn pass-on-context [context cb]
+  (fn [x] (cb context x)))
+
 (defn compile-list-form [context x cb]
   ;; Currently, only typed calls.
   (let [[name & args] x]
     (cond
+      ;(= 'specify name) (cb (second args))
       (= 'quote name) (first args)
       :default
       (compile-exprs 
