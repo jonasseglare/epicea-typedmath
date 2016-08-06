@@ -223,8 +223,9 @@
   (let [[type-spec sym] args
         value (make-from-sym type-spec sym)]
     (assert (map? type-spec))
-    (assert (symbol? sym))
-    (cb2 (bind-context context sym value) value)))
+    (if (symbol? sym)
+      (cb2 (bind-context context sym value) value)
+      (cb2 context value))))
 
 (defn compile-list-form [context x cb2]
   ;; Currently, only typed calls.

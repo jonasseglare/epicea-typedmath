@@ -4,8 +4,8 @@
 
 (set! *warn-on-reflection* true)
 
-(def kattskiten 234)
-(println "Calling .toString should give us a reflection warning" (.toString kattskiten))
+;(def kattskiten 234)
+;(println "Calling .toString should give us a reflection warning" (.toString kattskiten))
 
 (deftest type-hinting-test
   (testing "Hinting"
@@ -127,6 +127,9 @@
               (specify {:type :double} b)
               (typed+ a b)))
            {:type :double :expr 5}))
+    (is (= (statically (typed+ (specify {:type :double} 3) 
+                               (specify {:type :double} 4)))
+           {:type :double, :expr 7}))
 ))
 
 
