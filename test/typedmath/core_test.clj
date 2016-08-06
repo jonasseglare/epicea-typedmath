@@ -114,6 +114,8 @@
                      {:type :number, :expr 4} 
                      {:type :number, :expr 5}]}))
     (is (= [4 5 6] (statically (to-data (typed+ 1 [3 4 5])))))
+    (is (= (bind-context {} 'rulle {:type :number :expr 3})
+           {:bindings {'rulle {:type :number :expr 3}}}))
 ))
 
 
