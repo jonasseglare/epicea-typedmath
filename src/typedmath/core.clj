@@ -59,6 +59,8 @@
 ;(defn flat-size [x] (count (flat-vector x)))
 (defmulti populate (fn [x v] (:type x)))
 
+(defmulti make-from-sym (fn [x sym] (:type x)))
+
 ;; Everything that in reality can be represented using just one primitive.
 (templated
  [y]
@@ -163,7 +165,7 @@
     (compilation-error
      "Didn't find function named " name " for arguments " args)))
 
-(declare compile-expr)
+(declare compile-expr2)
 (declare compile-expr1)
 
 (defn async-map-sub [f args acc cb]
@@ -214,12 +216,23 @@
 (defn pass-on-context [context cb]
   (fn [x] (cb context x)))
 
+(defn bind-context [context sym x]
+  (assoc-in context [:bindings sym] x))
+
+(defn compile-spec [context args cb2]
+  (let [[type-spec sym] args
+        value ( type-spec sym)]
+    (assert (map? type-spec))
+    (assert (symbol? sym))
+    (cb2 (bind-context context sym value) value)))
+
 (defn compile-list-form [context x cb2]
   ;; Currently, only typed calls.
   (let [[name & args] x]
     (cond
-      ;(= 'specify name) (cb (second args))
+      (= 'specify name) (compile-spec context args cb2)
       (= 'quote name) (first args)
+
       :default
       (compile-exprs 
        context
@@ -421,12 +434,6 @@
     (assert (= (:dims A) (:dims B)))
     (if (= 1 (:dims A))
       (evaluate-mat-add-1 A B cb))))
-             
-
-
-                            
-
-
 
 (defn statically-sub [context forms]
   (if (empty? forms)
