@@ -161,6 +161,7 @@
      (str "Didn't find function named " name " for arguments " args))))
 
 (declare compile-expr)
+(declare compile-expr1)
 
 (defn async-map-sub [f args acc cb]
   (if (empty? args)
@@ -177,7 +178,7 @@
 ;; exprs are passed as a vector to the callback cb.
 (defn compile-exprs [context exprs cb]
   (async-map (fn [x cb] 
-               (compile-expr context x cb))
+               (compile-expr1 context x cb))
              exprs
              cb))
 
@@ -199,7 +200,7 @@
 (defn pass-on-context [context cb]
   (fn [x] (cb context x)))
 
-(defn compile-list-form [context x cb]
+(defn compile-list-form [context x cb2]
   ;; Currently, only typed calls.
   (let [[name & args] x]
     (cond
@@ -210,16 +211,19 @@
        context
        args
        (fn [cargs]
-         (call-typed-inline name cargs cb))))))
+         (call-typed-inline name cargs (pass-on-context context cb2)))))))
 
-(defn compile-expr [context x cb]
+
+(defn compile-expr [context x cb2]
   (cond
-    (number? x) (cb (make-number-type x))
-    (symbol? x) (cb (make-dynamic-type x))
-    (vector? x) (make-vector context x cb)
-    (list? x) (compile-list-form context x cb)
+    (number? x) (cb2 context (make-number-type x))
+    (symbol? x) (cb2 context (make-dynamic-type x))
+    (vector? x) (make-vector context x cb2)
+    (list? x) (compile-list-form context x cb2)
     :default (RuntimeException. (str "Failed to compile: " x))))
 
+(defn compile-expr1 [context x cb1]
+  (compile-expr context x (fn [_ out] (cb1 out))))
 
 
 
@@ -408,16 +412,16 @@
 
 
 
-(defn statically-sub [forms]
+(defn statically-sub [context forms]
   (if (empty? forms)
     nil
     (compile-expr 
      {}
      (first forms)
-     (fn [x]
+     (fn [next-context x]
        (let [k (rest forms)]
          (if (empty? k) x
-             (statically-sub k)))))))
+             (statically-sub next-context k)))))))
 
 (defmacro statically [& frms]
-  (statically-sub frms))
+  (statically-sub {} frms))

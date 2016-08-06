@@ -49,12 +49,12 @@
         (compile-exprs {} [9 11] identity))
 
     (is (= [:this-is-a-number {:type :number :expr 9}]
-               (compile-expr {} 9 (fn [x] [:this-is-a-number x]))))
-    (is (= (compile-expr {} [1 2 3] identity)
+               (compile-expr1 {} 9 (fn [x] [:this-is-a-number x]))))
+    (is (= (compile-expr1 {} [1 2 3] identity)
                {:type :vector, :fields [{:type :number, :expr 1} 
                                         {:type :number, :expr 2} 
                                         {:type :number, :expr 3}]}))
-    (is (= (compile-expr {} [[1 2] 3] identity)
+    (is (= (compile-expr1 {} [[1 2] 3] identity)
                {:type :vector, :fields [{:type :vector, :fields 
                                          [{:type :number, :expr 1} 
                                           {:type :number, :expr 2}]} 
@@ -97,15 +97,15 @@
       (is (= my-type {:type :vector, :fields 
                       [{:type :number} {:type :vector, :fields 
                                         [{:type :number} {:type :number}]}]}))
-      (is (= (compile-expr {} '[9 [20 119]] identity)
+      (is (= (compile-expr1 {} '[9 [20 119]] identity)
              (populate my-type [9 20 119]))))
 
-    (is (= (compile-expr {} '[9 [4 5 6] 7 8 9] identity)
+    (is (= (compile-expr1 {} '[9 [4 5 6] 7 8 9] identity)
            (populate (drop-data (compile-expr {} '[0 [0 0 0] 0 0 0] identity))
                      [9 4 5 6 7 8 9])))
     (is (= 3 (get-primitive {:type :number :expr 3})))
-    (is (= {:a 3} (compile-expr {} ''{:a 3} identity)))
-    (is (= {:a 3} (compile-expr {} '(quote {:a 3}) identity)))
+    (is (= {:a 3} (compile-expr1 {} ''{:a 3} identity)))
+    (is (= {:a 3} (compile-expr1 {} '(quote {:a 3}) identity)))
     (is (= (statically (to-data [3 4 5]))
            [3 4 5]))
     (is (= (statically [3 4 5])
