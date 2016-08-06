@@ -59,7 +59,7 @@
 ;(defn flat-size [x] (count (flat-vector x)))
 (defmulti populate (fn [x v] (:type x)))
 
-(defmulti make-from-sym (fn [x sym] (:type x)))
+(defmulti make-from-sym (fn [x sym cb] (:type x)))
 
 ;; Everything that in reality can be represented using just one primitive.
 (templated
@@ -220,12 +220,14 @@
   (assoc-in context [:bindings sym] x))
 
 (defn compile-spec [context args cb2]
-  (let [[type-spec sym] args
-        value (make-from-sym type-spec sym)]
-    (assert (map? type-spec))
-    (if (symbol? sym)
-      (cb2 (bind-context context sym value) value)
-      (cb2 context value))))
+  (let [[type-spec sym] args]
+    (make-from-sym 
+     type-spec sym 
+     (fn [value]
+       (assert (map? type-spec))
+       (if (symbol? sym)
+         (cb2 (bind-context context sym value) value)
+         (cb2 context value))))))
 
 (defn compile-list-form [context x cb2]
   ;; Currently, only typed calls.
@@ -287,8 +289,8 @@
 
 (defn make-num-from-sym [spec x]
   (assoc spec :expr x))
-(defmethod make-from-sym :number [spec x] (make-num-from-sym spec x))
-(defmethod make-from-sym :double [spec x] (make-num-from-sym spec x))
+(defmethod make-from-sym :number [spec x cb] (cb (make-num-from-sym spec x)))
+(defmethod make-from-sym :double [spec x cb] (cb (make-num-from-sym spec x)))
 ;(defmethod make-from-sym :vector [spec x] 
 
 
