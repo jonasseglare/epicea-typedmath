@@ -117,9 +117,16 @@
     (is (= (bind-context {} 'rulle {:type :number :expr 3})
            {:bindings {'rulle {:type :number :expr 3}}}))
     (is (= (let [a 9] (statically (specify {:type :number} a) a))
-           {:type :number, :expr 9}))
+           {:type :number, :expr 'a}))
     (is (= (let [a 9] (statically (specify {:type :number} a)))
-           {:type :number :expr 9}))
+           {:type :number :expr 'a}))
+    (is (= (let [a 2
+                 b 3]
+             (statically 
+              (specify {:type :double} a)
+              (specify {:type :double} b)
+              (typed+ a b)))
+           {:type :double :expr '(clojure.core/unchecked-add a b)}))
 ))
 
 

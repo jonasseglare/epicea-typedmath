@@ -448,16 +448,14 @@
       (evaluate-mat-add-1 A B cb))))
 
 (defn statically-sub [context forms]
-  (println "Context in statically sub: " context)
   (if (empty? forms)
     nil
     (compile-expr2 
      context
      (first forms)
      (fn [next-context x]
-       (println "The next context is " next-context)
        (let [k (rest forms)]
-         (if (empty? k) x
+         (if (empty? k) (list 'quote x)
              (statically-sub next-context k)))))))
 
 (defmacro statically [& frms]
