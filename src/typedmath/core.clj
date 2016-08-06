@@ -175,12 +175,16 @@
 
 ;; Used to compile a sequence of exprs. The compiled
 ;; exprs are passed as a vector to the callback cb.
-(defn compile-exprs [exprs cb]
-  (async-map compile-expr exprs cb))
+(defn compile-exprs [context exprs cb]
+  (async-map (fn [x cb] 
+               (compile-expr context x cb))
+             exprs
+             cb))
 
 
-(defn make-vector [v0 cb]
+(defn make-vector [context v0 cb]
   (compile-exprs 
+   context
    v0 (fn [v] (cb {:type :vector :fields v}))))
 
 (defn typed-inline-call? [x]
@@ -191,23 +195,24 @@
 (defn make-typed-inline-call [[name & args] cb]
   (call-typed-inline name args cb))
 
-(defn compile-list-form [x cb]
+(defn compile-list-form [context x cb]
   ;; Currently, only typed calls.
   (let [[name & args] x]
     (cond
       (= 'quote name) (first args)
       :default
       (compile-exprs 
+       context
        args
        (fn [cargs]
          (call-typed-inline name cargs cb))))))
 
-(defn compile-expr [x cb]
+(defn compile-expr [context x cb]
   (cond
     (number? x) (cb (make-number-type x))
     (symbol? x) (cb (make-dynamic-type x))
-    (vector? x) (make-vector x cb)
-    (list? x) (compile-list-form x cb)
+    (vector? x) (make-vector context x cb)
+    (list? x) (compile-list-form context x cb)
     :default (RuntimeException. (str "Failed to compile: " x))))
 
 
