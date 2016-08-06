@@ -275,7 +275,7 @@
 (elementwise-right typed-div)
 
 ;; Runtime type for nd-arrays
-(defrecord NDArray [dims data])
+(defrecord NDArray [dims data elem-type])
 
 (defn acc-index-expr [acc index-expr]
   {:expr 
@@ -299,6 +299,32 @@
   (let [x (flat-vector x)]
     (assert (= 1 (count x)))
     (first x)))
+
+(defn make-ndarray-type [dim-count elem-type sym cb]
+  (assert (number? dim-count))
+  (let [elem-size (flat-size elem-type)
+        size-symbol (gensym)
+        dims (conj 
+              (map 
+               (fn [x] `(nth ~size-symbol ~x)) 
+               (range dim-count)) elem-size)
+        dim-symbols (take dim-count (repeatedly gensym))
+        dim-exprs (conj dim-symbols elem-size)
+        data-symbol (gensym)
+        index-fn (fn [inds] (make-index-expr inds dim-exprs))
+        get-primitive-expr (fn [inds] `(aget ~inds ~dim-exprs))
+        get-flat-element (fn [inds] (map (fn [i] (get-primitive-expr
+                                                     (conj i inds)
+                                                     dim-exprs))
+                                            (range elem-size)))
+        get-element (fn [inds] (populate elem-type (get-flat-element inds)))]
+    `(let [^"[D" ~data-symbol (:data ~sym)
+           ~size-symbol (:dims ~sym)
+           ~@(mapcat (fn [x y] [^int x y]) dim-symbols dims)]
+       (cb {:type :ndarray
+            :dims dim-symbols
+            :get-element-fn get-element}))))
+
 
 (defn numeric-constant? [x]
   (number? (:expr x)))
