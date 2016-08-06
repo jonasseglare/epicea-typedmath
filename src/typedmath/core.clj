@@ -74,6 +74,8 @@
    :fields (repeat n type)})
 
 ;; Everything that in reality can be represented using just one primitive.
+(defmethod make-clojure-data :dynamic [x] (:expr x))
+
 (templated
  [y]
  [[:number] 
@@ -252,28 +254,39 @@
          (cb2 (bind-context context sym value) value)
          (cb2 context value))))))
 
-(defn attempt-call-typed-inline [context name args cb2]
+(defn attempt-call-typed-inline [context fun args cb2]
   (compile-exprs 
    context
    args
    (fn [next-context cargs]
-     (call-typed-inline 
-      name cargs 
-      (fn [x] (cb2 next-context x))))))
+     (fun cargs (fn [x] (cb2 next-context x))))))
 
-(defn compile-list-form [context x cb2]
+
+(defn compile-list-form [context0 x cb2]
   ;; Currently, only typed calls.
 
-  (let [[name & args] x
-        call-by-expr (find-call-by-expr name)]
-    (cond
-      (= 'quote name) (first args)
+  (let [[name & args] x]
+    ;; First thing to try: Is it quoted?
+    (if (= 'quote name) 
+      (first args)
 
-       ;; TODO: Looking up twice here...
-      call-by-expr (call-by-expr context args cb2)
+      ;; Second thing to try: Is it a call-by-expr?
+      (if-let [call-by-expr (find-call-by-expr name)]
+        (call-by-expr context0 args cb2)
 
-      :default
-      (attempt-call-typed-inline context name args cb2))))
+        (compile-exprs
+         context0 args
+         (fn [context1 cargs]
+
+           ;; Third thing to try: Is it a typed-inline?
+           (if-let [typed-inline (find-typed-inline name cargs)]
+             (typed-inline cargs (pass-on-context context1 cb2))
+
+             ;; Fourth thing: Try to invoke it as a regular function.
+             (cb2 context1 
+                  (make-dynamic-type ;; Tag it as dynamic type: We don't know
+                                     ;; what the function returns.
+                   `(~name ~@(map make-clojure-data cargs)))))))))))
 
 (defn compile-symbol [context x]
   (let [b (:bindings context)]

@@ -149,6 +149,10 @@
                (typed+
                 9 (from-data (sized-vector {:type :number} 3) A)))))
            [12 13 14]))
+
+    (is (= (Math/sin (* 0.25 Math/PI))
+           (statically (to-data (Math/sin (* 0.25 Math/PI))))))
+
 ))
 
 
