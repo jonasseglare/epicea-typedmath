@@ -5,6 +5,7 @@
 ;;   * implement 'to-data' for common matrix types
 ;;   * to-native-floats/from-native-floats
 ;;   * flatten nested let's and simplify but not beyond loops and functions.
+;;   * use the espresso library for simplifying indices.
 
 
 (defn compilation-error [& s]
@@ -241,6 +242,28 @@
          (cb2 (bind-context context sym value) value)
          (cb2 context value))))))
 
+(let [table (atom {})]
+  (defn add-call-by-expr [name fun]
+    (swap! table #(assoc % name fun)))
+  (defn find-call-by-expr [name]
+    (get (deref table) name)))
+
+(defmacro def-call-by-expr [name args & body]
+  `(add-call-by-expr ~name (fn [~args] ~@body)))
+
+
+(defn attempt-call-by-expr [context name args cb2]
+  ((find-call-by-expr name) context args cb2))
+
+(defn attempt-call-typed-inline [context name args cb2]
+  (compile-exprs 
+   context
+   args
+   (fn [next-context cargs]
+     (call-typed-inline 
+      name cargs 
+      (fn [x] (cb2 next-context x))))))
+
 (defn compile-list-form [context x cb2]
   ;; Currently, only typed calls.
   (let [[name & args] x]
@@ -249,13 +272,7 @@
       (= 'quote name) (first args)
 
       :default
-      (compile-exprs 
-       context
-       args
-       (fn [next-context cargs]
-         (call-typed-inline 
-          name cargs 
-          (fn [x] (cb2 next-context x))))))))
+      (attempt-call-typed-inline context name args cb2))))
 
 (defn compile-symbol [context x]
   (let [b (:bindings context)]
