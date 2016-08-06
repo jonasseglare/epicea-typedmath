@@ -321,7 +321,7 @@
     `(let [^"[D" ~data-symbol (:data ~sym)
            ~size-symbol (:dims ~sym)
            ~@(mapcat (fn [x y] [^int x y]) dim-symbols dims)]
-       (cb {:type :ndarray
+       ~(cb {:type :ndarray
             :dims dim-symbols
             :get-element-fn get-element}))))
 
@@ -387,10 +387,16 @@
                             
 
 
-nil
 
-;(defn compile-exprs [frms]
-;  (
+(defn statically-sub [forms]
+  (if (empty? forms)
+    nil
+    (compile-expr 
+     (first forms)
+     (fn [x]
+       (let [k (rest forms)]
+         (if (empty? k) x
+             (statically-sub k)))))))
 
-;(defmacro statically [& frms]
-;  (compile-exprs frms))
+(defmacro statically [& frms]
+  (statically-sub frms))

@@ -114,6 +114,20 @@
     (is (= (+ 1 (* 2 3)) 
            (make-index-expr [1 2] [3 4])))
 
+    (let [called (atom false)
+          expr (make-ndarray-type 
+                3 {:type :number} 'A 
+                (fn [x]
+                  (reset! called true)
+                  (is (map? x))))]
+      (is (seq? expr))
+      (is (deref called)))
+          
+
+
+
+      
+
 
 ))
 
