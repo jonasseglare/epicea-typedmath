@@ -215,7 +215,7 @@
 (defn make-typed-inline-call [[name & args] cb]
   (call-typed-inline name args cb))
 
-(declare specify)
+(declare from-data)
 
 (defn pass-on-context [context cb]
   (fn [x] (cb context x)))
@@ -238,7 +238,7 @@
   ;; Currently, only typed calls.
   (let [[name & args] x]
     (cond
-      (= 'specify name) (compile-spec context args cb2)
+      (= 'from-data name) (compile-spec context args cb2)
       (= 'quote name) (first args)
 
       :default
