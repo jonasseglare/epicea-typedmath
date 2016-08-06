@@ -116,25 +116,25 @@
     (is (= [4 5 6] (statically (to-data (typed+ 1 [3 4 5])))))
     (is (= (bind-context {} 'rulle {:type :number :expr 3})
            {:bindings {'rulle {:type :number :expr 3}}}))
-    (is (= (let [a 9] (statically (from-data {:type :number} a) a))
+    (is (= (let [a 9] (statically (input-value {:type :number} a) a))
            {:type :number, :expr 9}))
-    (is (= (let [a 9] (statically (from-data {:type :number} a)))
+    (is (= (let [a 9] (statically (input-value {:type :number} a)))
            {:type :number :expr 9}))
     (is (= (let [a 2
                  b 3]
              (statically 
-              (from-data {:type :double} a)
-              (from-data {:type :double} b)
+              (input-value {:type :double} a)
+              (input-value {:type :double} b)
               (typed+ a b)))
            {:type :double :expr 5}))
-    (is (= (statically (typed+ (from-data {:type :double} 3) 
-                               (from-data {:type :double} 4)))
+    (is (= (statically (typed+ (input-value {:type :double} 3) 
+                               (input-value {:type :double} 4)))
            {:type :double, :expr 7}))
     (is (= (let [A [1 2 3 4]]
              (statically 
               (to-data
                (typed+ 
-                9 (from-data {:type :vector 
+                9 (input-value {:type :vector 
                             :fields [{:type :number} 
                                      {:type :number} 
                                      {:type :number} 
@@ -147,7 +147,7 @@
              (statically 
               (to-data
                (typed+
-                9 (from-data (sized-vector {:type :number} 3) A)))))
+                9 (input-value (sized-vector {:type :number} 3) A)))))
            [12 13 14]))
 
     (is (= (Math/sin (* 0.25 Math/PI))

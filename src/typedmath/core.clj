@@ -67,7 +67,7 @@
 ;(defn flat-size [x] (count (flat-vector x)))
 (defmulti populate (fn [x v] (:type x)))
 
-(defmulti make-from-data (fn [x sym cb] (:type x)))
+(defmulti make-input-value (fn [x sym cb] (:type x)))
 
 (defn sized-vector [type n]
   {:type :vector
@@ -225,7 +225,7 @@
 (defn make-typed-inline-call [[name & args] cb]
   (call-typed-inline name args cb))
 
-(declare from-data)
+(declare input-value)
 
 (defn pass-on-context [context cb]
   (fn [x] (cb context x)))
@@ -243,10 +243,10 @@
   `(add-call-by-expr (quote ~name) (fn [~@args] ~@body)))
 
 
-(def-call-by-expr from-data [context args cb2]
+(def-call-by-expr input-value [context args cb2]
   (let [[type-spec0 sym] args
         type-spec (eval type-spec0)]
-    (make-from-data 
+    (make-input-value 
      type-spec sym 
      (fn [value]
        (assert (map? type-spec))
@@ -324,13 +324,13 @@
 
 (defn make-num-from-sym [spec x]
   (assoc spec :expr x))
-(defmethod make-from-data :number [spec x cb] (cb (make-num-from-sym spec x)))
-(defmethod make-from-data :double [spec x cb] (cb (make-num-from-sym spec x)))
-(defmethod make-from-data :vector [spec x cb] 
+(defmethod make-input-value :number [spec x cb] (cb (make-num-from-sym spec x)))
+(defmethod make-input-value :double [spec x cb] (cb (make-num-from-sym spec x)))
+(defmethod make-input-value :vector [spec x cb] 
   (async-map (fn [[field i] cb]
                (let [s (gensym)]
                `(let [~s (nth ~x ~i)] ;; TODO: Type hint s here based on the type of field?
-                  ~(make-from-data field s cb))))
+                  ~(make-input-value field s cb))))
              (map vector (:fields spec) (range (count (:fields spec))))
              (fn [result]
                (cb (assoc spec :fields result)))))
