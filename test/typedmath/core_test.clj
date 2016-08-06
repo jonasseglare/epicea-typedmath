@@ -106,6 +106,13 @@
     (is (= 3 (get-primitive {:type :number :expr 3})))
     (is (= {:a 3} (compile-expr ''{:a 3} identity)))
     (is (= {:a 3} (compile-expr '(quote {:a 3}) identity)))
+    (is (= (statically (to-data [3 4 5]))
+           [3 4 5]))
+    (is (= (statically [3 4 5])
+           {:type :vector
+            :fields [{:type :number, :expr 3} 
+                     {:type :number, :expr 4} 
+                     {:type :number, :expr 5}]}))
 ))
 
 
@@ -119,15 +126,10 @@
                 3 {:type :number} 'A 
                 (fn [x]
                   (reset! called true)
-                  (println "Element 1 2 is: " ((:get-element-fn x) [1 2]))
                   (is (map? x))))]
       (is (seq? expr))
       (is (deref called)))
           
-
-
-
-      
 
 
 ))

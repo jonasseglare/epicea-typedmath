@@ -5,6 +5,8 @@
      (println (str "Value of " ~(str x) " is " value#))
      value#))
 
+(defn always-true [x] true)
+
 ;(set! *warn-on-reflection* true)
 (set! *warn-on-reflection* true)
 
@@ -148,6 +150,9 @@
     (make-type-tester ~(quote-symbols types))
     (fn [[~@(map second types)] ~cb]
       ~@body)))
+
+(def-typed-inline to-data [[always-true x]] cb
+  (cb (make-clojure-data x)))
 
 (defn call-typed-inline [name args cb]
   (if-let [f (find-typed-inline name args)]
@@ -338,8 +343,6 @@
 
 (defn get-numeric-constant [x]
   (:expr x))
-
-(defn always-true [x] true)
 
 ;; (def-typed-inline ndarray [[numeric-constant? dim-count]
 ;;                            [always-true element-type]
