@@ -386,7 +386,7 @@
 (elementwise-right typed-div)
 
 ;; Runtime type for nd-arrays
-(defrecord NDArray [dims data elem-type])
+(defrecord NDArray [offset dims steps data elem-type])
 
 (defn acc-index-expr [acc index-expr]
   {:expr 
