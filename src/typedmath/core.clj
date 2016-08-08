@@ -307,6 +307,20 @@
 (defn compile-expr1 [context x cb1]
   (compile-expr2 context x (fn [_ out] (cb1 out))))
 
+(defn statically-sub [context forms]
+  (if (empty? forms)
+    nil
+    (compile-expr2 
+     context
+     (first forms)
+     (fn [next-context x]
+       (let [k (rest forms)]
+         (if (empty? k) x
+             (statically-sub next-context k)))))))
+
+(defmacro statically [& frms]
+  (statically-sub {} frms))
+
 
 
 
@@ -493,16 +507,3 @@
     (if (= 1 (:dims A))
       (evaluate-mat-add-1 A B cb))))
 
-(defn statically-sub [context forms]
-  (if (empty? forms)
-    nil
-    (compile-expr2 
-     context
-     (first forms)
-     (fn [next-context x]
-       (let [k (rest forms)]
-         (if (empty? k) x
-             (statically-sub next-context k)))))))
-
-(defmacro statically [& frms]
-  (statically-sub {} frms))
