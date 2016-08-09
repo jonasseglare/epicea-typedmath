@@ -243,16 +243,28 @@
   `(add-call-by-expr (quote ~name) (fn [~@args] ~@body)))
 
 
+(defn ensure-simple-expr [x cb]
+  (if (not (coll? x))
+    (cb x)
+    (let [s (gensym)]
+      `(let [~s ~x]
+         ~(cb s)))))
+
+
+
 (def-call-by-expr input-value [context args cb2]
-  (let [[type-spec0 sym] args
+  (let [[type-spec0 sym0] args
         type-spec (eval type-spec0)]
-    (make-input-value 
-     type-spec sym 
-     (fn [value]
-       (assert (map? type-spec))
-       (if (symbol? sym)
-         (cb2 (bind-context context sym value) value)
-         (cb2 context value))))))
+    (ensure-simple-expr 
+     sym0
+     (fn [sym]
+       (make-input-value 
+        type-spec sym 
+        (fn [value]
+          (assert (map? type-spec))
+          (if (symbol? sym)
+            (cb2 (bind-context context sym value) value)
+            (cb2 context value))))))))
 
 (defn attempt-call-typed-inline [context fun args cb2]
   (compile-exprs 
@@ -400,7 +412,17 @@
 (elementwise-right typed-div)
 
 ;; Runtime type for nd-arrays
-(defrecord NDArray [offset dims steps data elem-type])
+(defrecord NDArray [offset dims steps data elem-type elem-size])
+
+(defn allocate-ndarray [dims elem-type]
+  (let [n (count dims)
+        elem-size (flat-size elem-type)]
+    (->NDArray 0
+               dims
+               dims
+               (double-array (* (apply * dims) (flat-size elem-type)))
+               elem-type
+               elem-size)))
 
 (defn acc-index-expr [acc index-expr]
   {:expr 
@@ -449,8 +471,8 @@
            ~size-symbol (:dims ~sym)
            ~@(mapcat (fn [x y] [^int x y]) dim-symbols dims)]
        ~(cb {:type :ndarray
-            :dims dim-symbols
-            :get-element-fn get-element}))))
+             :dims dim-symbols
+             :get-element-fn get-element}))))
 
 
 (defn numeric-constant? [x]
@@ -494,16 +516,24 @@
   (cb {:type :transpose
        :value A}))
 
-;; The second argument is the callback, and that callback gets called for every
-;; element that is evaluated.
-(defmulti evaluate-mat-expr (fn [a _] (:type a)))
+;(defmethod make-input-value :ndarray [spec sym cb]
+;  `(
+  
 
-(defn evaluate-mat-add-1 [A B cb]
-  (cb :nothing))
+(defn ndarray-expr? [x]
+  (contains?
+   #{:ndarray}
+   (:type x)))
 
-(defmethod evaluate-mat-expr :add [expr cb]
-  (let [{:keys [A B]} expr]
-    (assert (= (:dims A) (:dims B)))
-    (if (= 1 (:dims A))
-      (evaluate-mat-add-1 A B cb))))
+(defmulti split-outer (fn [matexpr sym] (:type matexpr)))
 
+(defn split-outer-ndarray [mat sym]
+  mat)
+
+(defmethod split-outer :ndarray [mat sym]
+  (split-outer-ndarray mat sym))
+
+
+;(def-typed-inline disp [[ndarray-expr? X]] cb
+
+  
