@@ -184,14 +184,15 @@
               mat))]
       (is (= :ndarray (:type x)))
       (is (= 0 (:offset x)))
-      (is (= (:data x) (:data mat)))
-      (is (= (:dims x) (:dims mat)))
-      (is (= (:steps x) (:steps mat))))
-
-
-
+      (is (= (:data x) (:data mat))))
 
 ))
+
+
+
+
+
+
 
 
 

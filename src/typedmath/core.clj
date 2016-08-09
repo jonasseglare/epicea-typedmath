@@ -516,18 +516,35 @@
   (cb {:type :transpose
        :value A}))
 
+(defn gensyms [n]
+  (vec (take n (repeatedly gensym))))
+
+(defn make-actual-steps [current-step steps]
+  (if (empty? steps)
+    '()
+    (let [s (gensym)]
+      (cons [s current-step]
+            (make-actual-steps 
+             `(clojure.core/unchecked-multiply-int ~s ~(first steps))
+             (rest steps))))))
+
 (defn make-input-value-ndarray [spec sym cb]
-  (let [[offset dims steps data] (repeatedly gensym)]
+  (let [[offset data] (repeatedly gensym)
+        dim-count (:dim-count spec)
+        step-syms (gensyms dim-count)
+        dim-syms (gensyms dim-count)
+        actual-steps (make-actual-steps 1 step-syms)]
     `(let [~offset (:offset ~sym)
-           ~dims (:dims ~sym)
-           ~steps (:steps ~sym)
+           ~dim-syms (:dims ~sym)
+           ~step-syms (:steps ~sym)
+           ~@(apply concat actual-steps)
            ~data (:data ~sym)]
-       (assert (= ~(:dim-count spec) (count ~dims)))
        ~(cb (merge spec
                    {:offset offset
-                    :dims dims
-                    :steps steps
-                    :data data})))))
+                    :dim-syms dim-syms
+                    :step-syms step-syms
+                    :data data
+                    :actual-steps (vec (map first actual-steps))})))))
 
        
 
@@ -543,7 +560,7 @@
 (defmulti split-outer (fn [matexpr sym] (:type matexpr)))
 
 (defn split-outer-ndarray [mat sym]
-  mat)
+  nil)
 
 (defmethod split-outer :ndarray [mat sym]
   (split-outer-ndarray mat sym))
