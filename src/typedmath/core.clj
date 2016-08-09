@@ -69,7 +69,7 @@
 
 (defmulti make-input-value (fn [x sym cb] (:type x)))
 
-(defn sized-vector [type n]
+(defn sized-vector-type [type n]
   {:type :vector
    :fields (repeat n type)})
 
@@ -516,8 +516,23 @@
   (cb {:type :transpose
        :value A}))
 
-;(defmethod make-input-value :ndarray [spec sym cb]
-;  `(
+(defn make-input-value-ndarray [spec sym cb]
+  (let [[offset dims steps data] (repeatedly gensym)]
+    `(let [~offset (:offset ~sym)
+           ~dims (:dims ~sym)
+           ~steps (:steps ~sym)
+           ~data (:data ~sym)]
+       (assert (= ~(:dim-count spec) (count ~dims)))
+       ~(cb (merge spec
+                   {:offset offset
+                    :dims dims
+                    :steps steps
+                    :data data})))))
+
+       
+
+(defmethod make-input-value :ndarray [spec sym cb]
+  (make-input-value-ndarray spec sym cb))
   
 
 (defn ndarray-expr? [x]
@@ -533,6 +548,8 @@
 (defmethod split-outer :ndarray [mat sym]
   (split-outer-ndarray mat sym))
 
+(defn ndarray-type [elem-type dim-count]
+  {:type :ndarray :dim-count dim-count :elem-type elem-type})
 
 ;(def-typed-inline disp [[ndarray-expr? X]] cb
 

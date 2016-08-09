@@ -140,14 +140,14 @@
                                      {:type :number} 
                                      {:type :number}]} A)))))
            [10 11 12 13]))
-    (is (= (sized-vector {:type :number} 3)
+    (is (= (sized-vector-type {:type :number} 3)
            '{:type :vector, :fields ({:type :number} {:type :number} {:type :number})}))
 
     (is (= (let [A [3 4 5]]
              (statically 
               (output-value
                (typed+
-                9 (input-value (sized-vector {:type :number} 3) A)))))
+                9 (input-value (sized-vector-type {:type :number} 3) A)))))
            [12 13 14]))
 
     (is (= (Math/sin (* 0.25 Math/PI))
@@ -176,6 +176,17 @@
       (is (= [2 3] (:dims arr)))
       (is (= 0 (:offset arr)))
       (is (= 1 (:elem-size arr))))
+    (let [mat (allocate-ndarray [2 3] {:type :double})
+          x (statically 
+             (input-value 
+              (ndarray-type {:type :number} 2)
+              mat))]
+      (is (= :ndarray (:type x)))
+      (is (= 0 (:offset x)))
+      (is (= (:data x) (:data mat)))
+      (is (= (:dims x) (:dims mat)))
+      (is (= (:steps x) (:steps mat))))
+
 
 
 
