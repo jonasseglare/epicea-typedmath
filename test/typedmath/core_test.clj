@@ -7,6 +7,7 @@
 ;(def kattskiten 234)
 ;(println "Calling .toString should give us a reflection warning" (.toString kattskiten))
 
+
 (deftest type-hinting-test
   (testing "Hinting"
     (let [xxy (fn [a b] (+ (* a a) (* b b)))

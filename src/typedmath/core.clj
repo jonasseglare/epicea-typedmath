@@ -551,6 +551,13 @@
 (defn ndarray-type [elem-type dim-count]
   {:type :ndarray :dim-count dim-count :elem-type elem-type})
 
+(def ndarray-test-spec
+  '{:type :ndarray, :dim-count 2, 
+    :elem-type {:type :number}, 
+    :offset G__19130, :dims G__19131, 
+    :steps G__19132, :data G__19133})
+
+
 ;(def-typed-inline disp [[ndarray-expr? X]] cb
 
   
