@@ -175,8 +175,7 @@
 
     (let [arr (allocate-ndarray [2 3] {:type :double})]
       (is (= [2 3] (:dims arr)))
-      (is (= 0 (:offset arr)))
-      (is (= 1 (:elem-size arr))))
+      (is (= 0 (:offset arr))))
     (let [mat (allocate-ndarray [2 3] {:type :double})
           x (statically 
              (input-value 

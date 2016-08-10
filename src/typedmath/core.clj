@@ -1,4 +1,5 @@
-(ns typedmath.core)
+(ns typedmath.core
+  (:require [typedmath.index-loop :refer :all]))
 
 ;; TODOs
 ;;   * type hint as many let-assignments as possible
@@ -7,6 +8,32 @@
 ;;   * flatten nested let's and simplify but not beyond loops and functions.
 ;;   * use the espresso library for simplifying indices.
 
+(defn addi [a b]
+  (cond
+    (= 0 a) b
+    (= 0 b) a
+    :default `(unchecked-add-int ~a ~b)))
+
+(defn muli [a b]
+  (cond
+    (= 1 a) b
+    (= 1 b) a
+    :default `(unchecked-multiply-int ~a ~b)))
+
+(defn addf [a b]
+  (cond
+    (= 0 a) b
+    (= 0 b) a
+    :default `(unchecked-add ~a ~b)))
+
+(defn mulf [a b]
+  (cond
+    (= 1 a) b
+    (= 1 b) a
+    :default `(unchecked-mul ~a ~b)))
+    
+(defn type-hint-symbol [sym tag]
+  (vary-meta sym assoc :tag tag))
 
 (defn compilation-error [& s]
   (throw (RuntimeException. (apply str s))))
@@ -412,17 +439,15 @@
 (elementwise-right typed-div)
 
 ;; Runtime type for nd-arrays
-(defrecord NDArray [offset dims steps data elem-type elem-size])
+(defrecord NDArray [offset dims steps data elem-type])
 
 (defn allocate-ndarray [dims elem-type]
-  (let [n (count dims)
-        elem-size (flat-size elem-type)]
+  (let [n (count dims)]
     (->NDArray 0
                dims
                dims
                (double-array (* (apply * dims) (flat-size elem-type)))
-               elem-type
-               elem-size)))
+               elem-type)))
 
 (defn acc-index-expr [acc index-expr]
   {:expr 
@@ -533,7 +558,7 @@
         dim-count (:dim-count spec)
         step-syms (gensyms dim-count)
         dim-syms (gensyms dim-count)
-        actual-steps (make-actual-steps 1 step-syms)]
+        actual-steps (make-actual-steps (flat-size (:elem-type spec)) step-syms)]
     `(let [~offset (:offset ~sym)
            ~dim-syms (:dims ~sym)
            ~step-syms (:steps ~sym)
@@ -557,22 +582,56 @@
    #{:ndarray}
    (:type x)))
 
-(defmulti split-outer (fn [matexpr sym] (:type matexpr)))
+(defmulti split-outer (fn [matexpr sym cb] (:type matexpr)))
+(defmulti per-element-op :type)
 
-(defn split-outer-ndarray [mat sym]
-  nil)
+(defn split-outer-ndarray [mat sym cb]
+  (let [offset (type-hint-symbol (gensym) 'int)]
+    `(let [~offset (unchecked-add-int 
+                    ~(:offset mat) 
+                    (unchecked-multiply-int ~(last (:actual-steps mat)) ~sym))]
+       ~(cb (merge mat {:offset offset
+                       :dim-syms (butlast (:dim-syms mat))
+                       :step-syms (butlast (:step-syms mat))
+                       :actual-steps (butlast (:actual-steps mat))})))))
+    
 
-(defmethod split-outer :ndarray [mat sym]
-  (split-outer-ndarray mat sym))
+(defmethod split-outer :ndarray [mat sym cb]
+  (split-outer-ndarray mat sym cb))
+
+(defn list-agets [arr offset n]
+  (assert (symbol? arr))
+  (assert (symbol? offset))
+  (assert (number? n))
+  (map (fn [i] `(aget ~arr ~(addi offset i))) (range n)))
+
+(defmethod per-element-op :ndarray [mat]
+  (let [etype (:elem-type mat)]
+    (populate 
+     etype 
+     (list-agets (:data mat) 
+                 (:offset mat) 
+                 (flat-size etype)))))
+
+(defn make-full-array-loop [mat]
+  (if (empty? (:dim-syms mat))
+    (per-element-op mat)
+    (let [loop-var (gensym)]
+      `(index-loop 
+        [~loop-var ~(last (:dim-syms mat))]
+        ~@(split-outer 
+           mat loop-var
+           make-full-array-loop)))))
+
 
 (defn ndarray-type [elem-type dim-count]
   {:type :ndarray :dim-count dim-count :elem-type elem-type})
 
 (def ndarray-test-spec
-  '{:type :ndarray, :dim-count 2, 
-    :elem-type {:type :number}, 
-    :offset G__19130, :dims G__19131, 
-    :steps G__19132, :data G__19133})
+  '{:type :ndarray, :dim-count 2, :elem-type {:type :number}, 
+    :offset G__14085, :dim-syms [G__14089 G__14090], 
+    :step-syms [G__14087 G__14088], :data G__14086, 
+    :actual-steps [G__14091 G__14092]})
 
 
 ;(def-typed-inline disp [[ndarray-expr? X]] cb
