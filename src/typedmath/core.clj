@@ -535,7 +535,7 @@
 
 (def-typed-inline typed- [[:ndarray A]] cb
   (cb {:type :neg
-       :value A}))
+       :value A}))  
 
 (def-typed-inline typed-transpose [[:ndarray A]] cb
   (cb {:type :transpose
@@ -623,6 +623,23 @@
            mat loop-var
            make-full-array-loop)))))
 
+(def-typed-inline array-loop [[:ndarray A]] cb
+  (cb (make-full-array-loop A)))
+
+(def-typed-inline disp-element [[:ndarray A]] cb
+  (cb {:type :disp-element
+       :data A}))
+
+(defmethod split-outer :disp-element [mat sym cb]
+  (split-outer
+   (:data mat)
+   sym
+   (fn [x] (cb {:type :disp-element :data x}))))
+
+(defmethod per-element-op :disp-element [x]
+  `(println "ELEMENT IS " ~x))
+     
+(defmethod make-clojure-data :disp-element [x] nil)
 
 (defn ndarray-type [elem-type dim-count]
   {:type :ndarray :dim-count dim-count :elem-type elem-type})
@@ -635,5 +652,5 @@
 
 
 ;(def-typed-inline disp [[ndarray-expr? X]] cb
-
+;(macroexpand '(statically (array-loop (input-value (ndarray-type {:type :number} 2) A))))
   
