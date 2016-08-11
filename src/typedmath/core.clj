@@ -541,6 +541,10 @@
   (cb {:type :transpose
        :value A}))
 
+(def-typed-inline disp-value [[dont-care x]] cb
+  `(do (println "  Value " ~x) 
+       ~@(cb nil)))
+
 (defn gensyms [n]
   (vec (take n (repeatedly gensym))))
 
@@ -585,11 +589,12 @@
 (defmulti split-outer (fn [matexpr sym cb] (:type matexpr)))
 (defmulti per-element-op :type)
 
+(defmacro compute-offset [old-offset step index]
+  `(addi ~old-offset (muli ~step ~index)))
+
 (defn split-outer-ndarray [mat sym cb]
   (let [offset (type-hint-symbol (gensym) 'int)]
-    `(let [~offset (unchecked-add-int 
-                    ~(:offset mat) 
-                    (unchecked-multiply-int ~(last (:actual-steps mat)) ~sym))]
+    `(let [~offset (compute-offset ~(:offset mat) ~(last (:actual-steps mat)) ~sym)]
        ~(cb (merge mat {:offset offset
                        :dim-syms (butlast (:dim-syms mat))
                        :step-syms (butlast (:step-syms mat))
@@ -626,19 +631,35 @@
 (def-typed-inline array-loop [[:ndarray A]] cb
   (cb (make-full-array-loop A)))
 
+(defmethod per-element-op :element-wise [mat]
+  [:element-wise mat])
+
+(defn split-outer-args [args sym cb]
+  (async-map #(split-outer %1 sym %2) args cb))
+
+(defn split-outer-element-wise [mat sym cb]
+  (split-outer-args 
+   (:args mat) sym
+   (fn [args]
+     (cb (merge mat {:dim-syms (butlast (:dim-syms mat))
+                     :args args})))))
+   
+
+(defmethod split-outer :element-wise [mat sym cb]
+  (split-outer-element-wise mat sym cb))
+
+(defn element-wise [op args cb]
+  (cb {:type :element-wise
+       :op 'disp-value
+       :dim-syms (first args)
+       :args args}))
+
 (def-typed-inline disp-element [[:ndarray A]] cb
-  (cb {:type :disp-element
-       :data A}))
+  (element-wise 'disp-value [A] cb))
 
-(defmethod split-outer :disp-element [mat sym cb]
-  (split-outer
-   (:data mat)
-   sym
-   (fn [x] (cb {:type :disp-element :data x}))))
+(def-typed-inline execute [[dont-care X]] cb
+   (cb (make-full-array-loop X)))
 
-(defmethod per-element-op :disp-element [x]
-  `(println "ELEMENT IS " ~x))
-     
 (defmethod make-clojure-data :disp-element [x] nil)
 
 (defn ndarray-type [elem-type dim-count]
@@ -651,6 +672,4 @@
     :actual-steps [G__14091 G__14092]})
 
 
-;(def-typed-inline disp [[ndarray-expr? X]] cb
-;(macroexpand '(statically (array-loop (input-value (ndarray-type {:type :number} 2) A))))
-  
+;(macroexpand-1 '(statically (execute (disp-element (input-value (ndarray-type {:type :number} 2) A)))))
