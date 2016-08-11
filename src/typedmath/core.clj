@@ -588,6 +588,7 @@
 
 (defmulti split-outer (fn [matexpr sym cb] (:type matexpr)))
 (defmulti per-element-op :type)
+(defmulti get-single-element :type)
 
 (defmacro compute-offset [old-offset step index]
   `(addi ~old-offset (muli ~step ~index)))
@@ -596,9 +597,10 @@
   (let [offset (type-hint-symbol (gensym) 'int)]
     `(let [~offset (compute-offset ~(:offset mat) ~(last (:actual-steps mat)) ~sym)]
        ~(cb (merge mat {:offset offset
-                       :dim-syms (butlast (:dim-syms mat))
-                       :step-syms (butlast (:step-syms mat))
-                       :actual-steps (butlast (:actual-steps mat))})))))
+                        :dim-count (dec (:dim-count mat))
+                        :dim-syms (butlast (:dim-syms mat))
+                        :step-syms (butlast (:step-syms mat))
+                        :actual-steps (butlast (:actual-steps mat))})))))
     
 
 (defmethod split-outer :ndarray [mat sym cb]
@@ -610,15 +612,22 @@
   (assert (number? n))
   (map (fn [i] `(aget ~arr ~(addi offset i))) (range n)))
 
-(defmethod per-element-op :ndarray [mat]
+(defn list-ndarray-agets [mat]
   (let [etype (:elem-type mat)]
-    (populate 
-     etype 
-     (list-agets (:data mat) 
-                 (:offset mat) 
-                 (flat-size etype)))))
+    (list-agets (:data mat) (:offset mat) (flat-size etype))))
+
+(defmethod per-element-op :ndarray [mat]
+  (populate (:elem-type mat (list-ndarray-agets mat))))
+
+(defn get-single-ndarray-element [mat]
+  (populate (:elem-type mat) (list-ndarray-agets mat)))
+
+(defmethod get-single-element :ndarray [mat]
+  (get-single-ndarray-element mat))
+
 
 (defn make-full-array-loop [mat]
+  (assert (every? symbol? (:dim-syms mat)))
   (if (empty? (:dim-syms mat))
     (per-element-op mat)
     (let [loop-var (gensym)]
@@ -631,8 +640,16 @@
 (def-typed-inline array-loop [[:ndarray A]] cb
   (cb (make-full-array-loop A)))
 
+(defn per-element-op-ewise [mat]
+  (attempt-call-typed-inline
+   {} ; <--- TODO: Hand on context!!!
+   (:op mat)
+   [(get-single-element (first (:args mat)))]
+   identity))
+
 (defmethod per-element-op :element-wise [mat]
-  [:element-wise mat])
+  (per-element-op-ewise mat))
+
 
 (defn split-outer-args [args sym cb]
   (async-map #(split-outer %1 sym %2) args cb))
@@ -641,8 +658,8 @@
   (split-outer-args 
    (:args mat) sym
    (fn [args]
-     (cb (merge mat {:dim-syms (butlast (:dim-syms mat))
-                     :args args})))))
+     (cb (disp (merge mat {:dim-syms (butlast (:dim-syms mat))
+                     :args args}))))))
    
 
 (defmethod split-outer :element-wise [mat sym cb]
@@ -651,7 +668,7 @@
 (defn element-wise [op args cb]
   (cb {:type :element-wise
        :op 'disp-value
-       :dim-syms (first args)
+       :dim-syms (:dim-syms (first args))
        :args args}))
 
 (def-typed-inline disp-element [[:ndarray A]] cb
