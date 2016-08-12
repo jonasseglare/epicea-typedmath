@@ -8,25 +8,25 @@
 ;;   * flatten nested let's and simplify but not beyond loops and functions.
 ;;   * use the espresso library for simplifying indices.
 
-(defn addi [a b]
+(defmacro addi [a b]
   (cond
     (= 0 a) b
     (= 0 b) a
     :default `(unchecked-add-int ~a ~b)))
 
-(defn muli [a b]
+(defmacro muli [a b]
   (cond
     (= 1 a) b
     (= 1 b) a
     :default `(unchecked-multiply-int ~a ~b)))
 
-(defn addf [a b]
+(defmacro addf [a b]
   (cond
     (= 0 a) b
     (= 0 b) a
     :default `(unchecked-add ~a ~b)))
 
-(defn mulf [a b]
+(defmacro mulf [a b]
   (cond
     (= 1 a) b
     (= 1 b) a
@@ -300,6 +300,20 @@
    (fn [next-context cargs]
      (fun cargs (fn [x] (cb2 next-context x))))))
 
+(defn compile-list-form-for-compiled-args [context name cargs cb]
+  ;; Third thing to try: Is it a typed-inline?
+  (if-let [typed-inline (find-typed-inline name cargs)]
+    (typed-inline cargs (pass-on-context context cb))
+
+    ;; Fourth thing: Try to invoke it as a regular function.
+    ;; Checking whether such a function exists might not be easy
+    ;; because it could be a bound local variable in the enclosing
+    ;; expression.
+    (cb context
+        (make-dynamic-type ;; Tag it as dynamic type: We don't know
+         ;; what the function returns.
+         `(~name ~@(map make-clojure-data cargs))))))
+
 
 (defn compile-list-form [context0 x cb2]
   (let [[name & args] x]
@@ -314,19 +328,8 @@
         (compile-exprs
          context0 args
          (fn [context1 cargs]
-
-           ;; Third thing to try: Is it a typed-inline?
-           (if-let [typed-inline (find-typed-inline name cargs)]
-             (typed-inline cargs (pass-on-context context1 cb2))
-
-             ;; Fourth thing: Try to invoke it as a regular function.
-             ;; Checking whether such a function exists might not be easy
-             ;; because it could be a bound local variable in the enclosing
-             ;; expression.
-             (cb2 context1 
-                  (make-dynamic-type ;; Tag it as dynamic type: We don't know
-                                     ;; what the function returns.
-                   `(~name ~@(map make-clojure-data cargs)))))))))))
+           (compile-list-form-for-compiled-args
+            context1 name cargs cb2)))))))
 
 (defn compile-symbol [context x]
   (let [b (:bindings context)]
@@ -542,7 +545,7 @@
        :value A}))
 
 (def-typed-inline disp-value [[dont-care x]] cb
-  `(do (println "  Value " ~x) 
+  `(do (println "  Value " ~(:expr x)) 
        ~@(cb nil)))
 
 (defn gensyms [n]
@@ -633,7 +636,7 @@
     (let [loop-var (gensym)]
       `(index-loop 
         [~loop-var ~(last (:dim-syms mat))]
-        ~@(split-outer 
+        ~(split-outer 
            mat loop-var
            make-full-array-loop)))))
 
@@ -641,11 +644,12 @@
   (cb (make-full-array-loop A)))
 
 (defn per-element-op-ewise [mat]
-  (attempt-call-typed-inline
-   {} ; <--- TODO: Hand on context!!!
-   (:op mat)
-   [(get-single-element (first (:args mat)))]
-   identity))
+  (println "PER ELEMENT OP EWISE: " mat)
+  (let [arg (get-single-element (first (:args mat)))]
+    (println "arg = " arg)
+    (compile-list-form-for-compiled-args
+     {}
+     (:op mat) [arg] (fn [a b] a))))
 
 (defmethod per-element-op :element-wise [mat]
   (per-element-op-ewise mat))
@@ -690,3 +694,8 @@
 
 
 ;(macroexpand-1 '(statically (execute (disp-element (input-value (ndarray-type {:type :number} 2) A)))))
+
+;(let* [G__19017 (:offset A) vec__19029 (:dims A) G__19021 (clojure.core/nth vec__19029 0 nil) G__19022 (clojure.core/nth vec__19029 1 nil) vec__19030 (:steps A) G__19019 (clojure.core/nth vec__19030 0 nil) G__19020 (clojure.core/nth vec__19030 1 nil) G__19023 1 G__19024 (clojure.core/unchecked-multiply-int G__19023 G__19019) G__19018 (:data A)] (typedmath.index-loop/index-loop [G__19025 G__19022] clojure.core/let [G__19026 (typedmath.core/compute-offset G__19017 G__19024 G__19025)] (typedmath.index-loop/index-loop [G__19027 G__19021] clojure.core/let [G__19028 (typedmath.core/compute-offset G__19026 G__19023 G__19027)] (do (clojure.core/println "  Value " (clojure.core/aget G__19018 G__19028))))))
+
+;;(let* [G__22477 (:offset A) vec__22489 (:dims A) G__22481 (clojure.core/nth vec__22489 0 nil) G__22482 (clojure.core/nth vec__22489 1 nil) vec__22490 (:steps A) G__22479 (clojure.core/nth vec__22490 0 nil) G__22480 (clojure.core/nth vec__22490 1 nil) G__22483 1 G__22484 (clojure.core/unchecked-multiply-int G__22483 G__22479) G__22478 (:data A)] (typedmath.index-loop/index-loop [G__22485 G__22482] (clojure.core/let [G__22486 (typedmath.core/compute-offset G__22477 G__22484 G__22485)] (typedmath.index-loop/index-loop [G__22487 G__22481] (clojure.core/let [G__22488 (typedmath.core/compute-offset G__22486 G__22483 G__22487)] (do (clojure.core/println "  Value " (clojure.core/aget G__22478 G__22488))))))))
+
