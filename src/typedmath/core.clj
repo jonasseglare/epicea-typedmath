@@ -222,7 +222,7 @@
 
 (defn compile-exprs-sub [acc context exprs cb]
   (if (empty? exprs)
-    (cb context acc )
+    (cb context acc)
     (compile-expr2 
      context 
      (first exprs)
@@ -232,7 +232,8 @@
 ;; Used to compile a sequence of exprs. The compiled
 ;; exprs are passed as a vector to the callback cb.
 (defn compile-exprs [context exprs cb]
-  (compile-exprs-sub [] context exprs cb))
+  (assert (fn? cb))
+  (compile-exprs-sub [] context exprs (fn [a b] (println "CALLED!!!" a b) (cb a b))))
 
   ;; (async-map (fn [x cb] 
   ;;              (compile-expr1 context x cb))
@@ -597,7 +598,10 @@
   `(addi ~old-offset (muli ~step ~index)))
 
 (defn split-outer-ndarray [mat sym cb]
-  (let [offset (type-hint-symbol (gensym) 'int)]
+; (type-hint-symbol (gensym) 'int)]
+; CompilerException java.lang.UnsupportedOperationException: Can't type hint a local with a primitive initializer, compiling:(*cider-repl typedmath*:200:16) 
+  (let [offset (gensym)] 
+
     `(let [~offset (compute-offset ~(:offset mat) ~(last (:actual-steps mat)) ~sym)]
        ~(cb (merge mat {:offset offset
                         :dim-count (dec (:dim-count mat))
@@ -669,14 +673,23 @@
 (defmethod split-outer :element-wise [mat sym cb]
   (split-outer-element-wise mat sym cb))
 
-(defn element-wise [op args cb]
+(defn element-wise-type [op args cb]
   (cb {:type :element-wise
-       :op 'disp-value
+       :op op
        :dim-syms (:dim-syms (first args))
        :args args}))
 
 (def-typed-inline disp-element [[:ndarray A]] cb
-  (element-wise 'disp-value [A] cb))
+  (element-wise-type 'disp-value [A] cb))
+
+(def-call-by-expr element-wise [context0 args cb2]
+  (disp
+   (compile-exprs
+    context0 (rest args)
+    (fn [context cargs]
+      (element-wise-type 
+       (first args) cargs 
+       (pass-on-context context cb2))))))
 
 (def-typed-inline execute [[dont-care X]] cb
    (cb (make-full-array-loop X)))
@@ -699,3 +712,5 @@
 
 ;;(let* [G__22477 (:offset A) vec__22489 (:dims A) G__22481 (clojure.core/nth vec__22489 0 nil) G__22482 (clojure.core/nth vec__22489 1 nil) vec__22490 (:steps A) G__22479 (clojure.core/nth vec__22490 0 nil) G__22480 (clojure.core/nth vec__22490 1 nil) G__22483 1 G__22484 (clojure.core/unchecked-multiply-int G__22483 G__22479) G__22478 (:data A)] (typedmath.index-loop/index-loop [G__22485 G__22482] (clojure.core/let [G__22486 (typedmath.core/compute-offset G__22477 G__22484 G__22485)] (typedmath.index-loop/index-loop [G__22487 G__22481] (clojure.core/let [G__22488 (typedmath.core/compute-offset G__22486 G__22483 G__22487)] (do (clojure.core/println "  Value " (clojure.core/aget G__22478 G__22488))))))))
 
+
+; (macroexpand-1 '(statically (execute (element-wise println (input-value (ndarray-type {:type :number} 2) A)))))
