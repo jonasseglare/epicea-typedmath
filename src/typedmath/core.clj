@@ -613,7 +613,7 @@
   (assert (symbol? arr))
   (assert (symbol? offset))
   (assert (number? n))
-  (map (fn [i] `(aget ~arr ~(addi offset i))) (range n)))
+  (map (fn [i] `(aget ~arr (addi ~offset ~i))) (range n)))
 
 (defn list-ndarray-agets [mat]
   (let [etype (:elem-type mat)]
