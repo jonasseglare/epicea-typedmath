@@ -184,6 +184,7 @@
       (is (= :ndarray (:type x)))
       (is (= 0 (:offset x)))
       (is (= (:data x) (:data mat))))
+    (is (= 9 (compute-index [1 2] [4 5])))
 
 ))
 

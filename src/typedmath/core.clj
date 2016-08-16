@@ -445,6 +445,7 @@
 ;; Runtime type for nd-arrays
 (defrecord NDArray [offset dims steps data elem-type])
 
+;;;;;;;; NDArray runtime ops
 (defn allocate-ndarray [dims elem-type]
   (let [n (count dims)]
     (->NDArray 0
@@ -453,6 +454,28 @@
                (double-array (* (apply * dims) (flat-size elem-type)))
                elem-type)))
 
+(defn compute-index [inds dims]
+  (assert (= (count inds) (count dims)))
+  (if (empty? inds)
+    0
+    (+ (first inds)
+       (* (first dims)
+          (compute-index (rest inds)
+                         (rest dims))))))
+
+(defn set-element [mat inds data] nil)
+;  (let [index (compute-index 
+;               (cons 0 (inds (:mat mat)))
+;               (cons (flat-size (:elem-type mat))))]
+;    (
+    
+
+
+
+
+
+
+;;;;;;;;; NDArray macro-expansion time ops
 (defn acc-index-expr [acc index-expr]
   {:expr 
    (precompute 
@@ -691,6 +714,15 @@
 (def-typed-inline execute [[dont-care X]] cb
    (cb (make-full-array-loop X)))
 
+;;;;;;;;;;;;;; Assigment
+
+
+(def-typed-inline assign [[dont-care A] 
+                          [dont-care B]] cb
+  (cb (make-full-array-loop {:type :assignment
+                             :left A
+                             :right B})))
+
 (defmethod make-clojure-data :disp-element [x] nil)
 
 (defn ndarray-type [elem-type dim-count]
@@ -706,3 +738,14 @@
 ;(macroexpand-1 '(statically (execute (disp-element (input-value (ndarray-type {:type :number} 2) A)))))
 ; (macroexpand-1 '(statically (execute (element-wise println (input-value (ndarray-type {:type :number} 2) A)))))
 ; (statically (execute (element-wise println (input-value (ndarray-type {:type :number} 2) A))))
+
+(defn assign-test []
+  (let [A (allocate-ndarray [2 3] {:type :double})
+        B (allocate-ndarray [2 3] {:type :double})
+        [rows cols] (:dims A)]
+    (index-loop 
+     [i rows]
+     (index-loop 
+      [j cols]
+      (set-element A i j [0])))))
+    
