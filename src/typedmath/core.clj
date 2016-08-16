@@ -463,11 +463,14 @@
           (compute-index (rest inds)
                          (rest dims))))))
 
-(defn set-element [mat inds data] nil)
-;  (let [index (compute-index 
-;               (cons 0 (inds (:mat mat)))
-;               (cons (flat-size (:elem-type mat))))]
-;    (
+(defn set-element [mat inds data]
+  (let [esize (flat-size (:elem-type mat))
+        index (compute-index 
+               (cons 0 inds)
+               (cons esize (:dims mat)))]
+    (assert (= esize (count data)))
+    (index-loop [k esize]
+                (aset (:data mat) (+ index k) (double (nth data k))))))
     
 
 
@@ -747,5 +750,5 @@
      [i rows]
      (index-loop 
       [j cols]
-      (set-element A i j [0])))))
+      (set-element A [i j] [(+ j (* i i))])))))
     
