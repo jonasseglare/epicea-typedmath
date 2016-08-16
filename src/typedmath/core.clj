@@ -723,6 +723,7 @@
 (def-typed-inline assign [[dont-care A] 
                           [dont-care B]] cb
   (cb (make-full-array-loop {:type :assignment
+                             :dims (:dims A)
                              :left A
                              :right B})))
 
@@ -752,5 +753,6 @@
       [j cols]
       (set-element A [i j] [(+ j (* i i))]))))
   (statically
-   (assign B A)))
+   (assign (input-value (ndarray-type {:type :double} 2) B)
+           (input-value (ndarray-type {:type :double} 2) A))))
     
