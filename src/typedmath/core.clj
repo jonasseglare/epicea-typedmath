@@ -750,5 +750,7 @@
      [i rows]
      (index-loop 
       [j cols]
-      (set-element A [i j] [(+ j (* i i))])))))
+      (set-element A [i j] [(+ j (* i i))]))))
+  (statically
+   (assign B A)))
     
