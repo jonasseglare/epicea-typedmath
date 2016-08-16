@@ -313,7 +313,7 @@
     (cb context
         (make-dynamic-type ;; Tag it as dynamic type: We don't know
          ;; what the function returns.
-         `(~name ~@(map make-clojure-data cargs))))))
+         (disp `(~(disp name) ~@(map make-clojure-data (disp cargs))))))))
 
 
 (defn compile-list-form [context0 x cb2]
@@ -329,8 +329,9 @@
         (compile-exprs
          context0 args
          (fn [context1 cargs]
-           (compile-list-form-for-compiled-args
-            context1 name cargs cb2)))))))
+           (disp
+            (compile-list-form-for-compiled-args
+             context1 name cargs cb2))))))))
 
 (defn compile-symbol [context x]
   (let [b (:bindings context)]
@@ -651,7 +652,7 @@
   (let [arg (get-single-element (first (:args mat)))]
     (compile-list-form-for-compiled-args
      {}
-     (:op mat) [arg] (fn [a b] a))))
+     (:op mat) [arg] (fn [a b] b))))
 
 (defmethod per-element-op :element-wise [mat]
   (per-element-op-ewise mat))
@@ -705,3 +706,4 @@
 
 ;(macroexpand-1 '(statically (execute (disp-element (input-value (ndarray-type {:type :number} 2) A)))))
 ; (macroexpand-1 '(statically (execute (element-wise println (input-value (ndarray-type {:type :number} 2) A)))))
+; (statically (execute (element-wise println (input-value (ndarray-type {:type :number} 2) A))))
