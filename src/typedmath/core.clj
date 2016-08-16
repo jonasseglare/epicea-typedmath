@@ -752,7 +752,7 @@
      (index-loop 
       [j cols]
       (set-element A [i j] [(+ j (* i i))]))))
-  (statically
+  (comment (statically
    (assign (input-value (ndarray-type {:type :double} 2) B)
-           (input-value (ndarray-type {:type :double} 2) A))))
+           (input-value (ndarray-type {:type :double} 2) A)))))
     
