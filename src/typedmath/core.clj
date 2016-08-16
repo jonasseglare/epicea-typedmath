@@ -313,7 +313,7 @@
     (cb context
         (make-dynamic-type ;; Tag it as dynamic type: We don't know
          ;; what the function returns.
-         (disp `(~(disp name) ~@(map make-clojure-data (disp cargs))))))))
+         `(~name ~@(map make-clojure-data cargs))))))
 
 
 (defn compile-list-form [context0 x cb2]
@@ -329,9 +329,8 @@
         (compile-exprs
          context0 args
          (fn [context1 cargs]
-           (disp
-            (compile-list-form-for-compiled-args
-             context1 name cargs cb2))))))))
+           (compile-list-form-for-compiled-args
+            context1 name cargs cb2)))))))
 
 (defn compile-symbol [context x]
   (let [b (:bindings context)]
