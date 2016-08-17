@@ -197,6 +197,36 @@
     (fn [[~@(map second types)] ~cb]
       ~@body)))
 
+(defn arg-count-is-at-least [n]
+  (fn [args]
+    (<= n (count args))))
+
+
+(defn resolve-reduced-sub [name args cb]
+  (let [first-args (take 2 args)
+        rest-args (drop 2 args)
+        f (find-typed-inline name first-args)]
+    (if (nil? f)
+      (compilation-error "Failed to resolve " name " for arguments " (vec first-args))
+      (f first-args
+         (fn [result]
+           (if (empty? rest-args)
+             (cb result)
+             (resolve-reduced-sub name (conj rest-args result) cb)))))))
+
+(defn resolve-reduced [name]
+  (fn [args cb]
+    (resolve-reduced-sub name args cb)))
+
+
+(defmacro def-typed-reduced [name]
+  `(add-typed-inline
+    (quote ~name)
+    (arg-count-is-at-least 3)
+    (resolve-reduced (quote ~name))))
+
+(def-typed-reduced typed+)
+
 (def-typed-inline output-value [[dont-care x]] cb
   (cb (make-clojure-data x)))
 
@@ -598,7 +628,7 @@
            ~dim-syms (:dims ~sym)
            ~step-syms (:steps ~sym)
            ~@(apply concat actual-steps)
-           ~data (:data ~sym)]
+           ~(type-hint-symbol data "[D") (:data ~sym)]
        ~(cb (merge spec
                    {:offset offset
                     :dim-syms dim-syms

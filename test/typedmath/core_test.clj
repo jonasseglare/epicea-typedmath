@@ -154,6 +154,7 @@
 
     (is (= (Math/sin (* 0.25 Math/PI))
            (statically (output-value (Math/sin (* 0.25 Math/PI))))))
+    (is (= {:type :number :expr 6} (statically (typed+ 1 2 3))))
 
 ))
 
