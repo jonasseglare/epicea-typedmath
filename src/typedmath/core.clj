@@ -654,7 +654,10 @@
   (populate (:elem-type mat (list-ndarray-agets mat))))
 
 (defn get-single-ndarray-element [mat]
-  (populate (:elem-type mat) (list-ndarray-agets mat)))
+  (assoc 
+   (populate (:elem-type mat) (list-ndarray-agets mat))
+   :storage mat))
+  
 
 (defmethod get-single-element :ndarray [mat]
   (get-single-ndarray-element mat))
@@ -675,10 +678,10 @@
   (cb (make-full-array-loop A)))
 
 (defn per-element-op-ewise [mat]
-  (let [arg (get-single-element (first (:args mat)))]
+  (let [args (map get-single-element (:args mat))]
     (compile-list-form-for-compiled-args
      {}
-     (:op mat) [arg] (fn [a b] b))))
+     (:op mat) args (fn [a b] b))))
 
 (defmethod per-element-op :element-wise [mat]
   (per-element-op-ewise mat))
@@ -719,13 +722,30 @@
    (cb (make-full-array-loop X)))
 
 ;;;;;;;;;;;;;; Assigment
+
+(defn make-assignment [storage elements]
+  `(do
+     ~@(map 
+        (fn [i x]
+          `(aset 
+            ~(:data storage) 
+            (addi ~(:offset storage) ~i)
+            ~x))
+        (range (count elements))
+        elements)))
+
 (def-typed-inline assign-element [[dont-care A]
                                   [dont-care B]] cb
-  nil)
+  (if (not (contains? A :storage))
+    (compilation-error "Left-hand side " A " cannot be assigned")
+    (cb
+     (make-assignment
+      (:storage A)
+      (flat-vector B)))))
 
 (def-typed-inline assign [[dont-care A] 
                           [dont-care B]] cb
-  (element-wise-type 
+  (element-wise-type
    'assign-element [A B]
    (fn [x]
      (cb (make-full-array-loop x)))))
@@ -754,8 +774,8 @@
      [i rows]
      (index-loop 
       [j cols]
-      (set-element A [i j] [(+ j (* i i))]))))
-  (comment (statically
-   (assign (input-value (ndarray-type {:type :double} 2) B)
-           (input-value (ndarray-type {:type :double} 2) A)))))
-    
+      (set-element A [i j] [(+ j (* i i))])))
+    (statically
+     (assign (input-value (ndarray-type {:type :double} 2) B)
+             (input-value (ndarray-type {:type :double} 2) A)))
+    [A B]))
