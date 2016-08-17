@@ -1,6 +1,7 @@
 (ns typedmath.core-test
   (:require [clojure.test :refer :all]
-            [typedmath.core :refer :all]))
+            [typedmath.core :refer :all]
+            [typedmath.index-loop :refer :all]))
 
 (set! *warn-on-reflection* true)
 
@@ -156,6 +157,19 @@
 
 ))
 
+(defn assign-test []
+  (let [A (allocate-ndarray [2 3] {:type :double})
+        B (allocate-ndarray [2 3] {:type :double})
+        [rows cols] (:dims A)]
+    (index-loop 
+     [i rows]
+     (index-loop 
+      [j cols]
+      (set-element A [i j] [(+ j (* i i))])))
+    (statically
+     (assign (input-value (ndarray-type {:type :double} 2) B)
+             (input-value (ndarray-type {:type :double} 2) A)))
+    [A B]))
 
 (deftest matrices
   (testing "Matrices"
@@ -185,6 +199,9 @@
       (is (= 0 (:offset x)))
       (is (= (:data x) (:data mat))))
     (is (= 9 (compute-index [1 2] [4 5])))
+    (let [[A B] (assign-test)]
+      (is (= (vec (:data A))
+             (vec (:data B)))))
 
 ))
 

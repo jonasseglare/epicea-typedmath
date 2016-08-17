@@ -760,22 +760,3 @@
     :offset G__14085, :dim-syms [G__14089 G__14090], 
     :step-syms [G__14087 G__14088], :data G__14086, 
     :actual-steps [G__14091 G__14092]})
-
-
-;(macroexpand-1 '(statically (execute (disp-element (input-value (ndarray-type {:type :number} 2) A)))))
-; (macroexpand-1 '(statically (execute (element-wise println (input-value (ndarray-type {:type :number} 2) A)))))
-; (statically (execute (element-wise println (input-value (ndarray-type {:type :number} 2) A))))
-
-(defn assign-test []
-  (let [A (allocate-ndarray [2 3] {:type :double})
-        B (allocate-ndarray [2 3] {:type :double})
-        [rows cols] (:dims A)]
-    (index-loop 
-     [i rows]
-     (index-loop 
-      [j cols]
-      (set-element A [i j] [(+ j (* i i))])))
-    (statically
-     (assign (input-value (ndarray-type {:type :double} 2) B)
-             (input-value (ndarray-type {:type :double} 2) A)))
-    [A B]))
