@@ -225,8 +225,6 @@
     (arg-count-is-at-least 3)
     (resolve-reduced (quote ~name))))
 
-(def-typed-reduced typed+)
-
 (def-typed-inline output-value [[dont-care x]] cb
   (cb (make-clojure-data x)))
 
@@ -442,6 +440,10 @@
    (def-typed-inline typed-div [[left a] [right b]] cb
      (cb {:type result
           :expr (precompute `(unchecked-divide ~(:expr a) ~(:expr b)))}))))
+(def-typed-reduced typed+)
+(def-typed-reduced typed-)
+(def-typed-reduced typed*)
+
 
 (defmacro elementwise-left [op]
   `(def-typed-inline ~op [[:vector a#] [scalar? b#]] cb#
