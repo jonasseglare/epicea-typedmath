@@ -469,8 +469,9 @@
                (cons 0 inds)
                (cons esize (:dims mat)))]
     (assert (= esize (count data)))
-    (index-loop [k esize]
-                (aset (:data mat) (+ index k) (double (nth data k))))))
+    (let [^"[D" dst(:data mat)]
+      (index-loop [k esize]
+                  (aset dst (+ index k) (double (nth data k)))))))
     
 
 
@@ -718,14 +719,16 @@
    (cb (make-full-array-loop X)))
 
 ;;;;;;;;;;;;;; Assigment
-
+(def-typed-inline assign-element [[dont-care A]
+                                  [dont-care B]] cb
+  nil)
 
 (def-typed-inline assign [[dont-care A] 
                           [dont-care B]] cb
-  (cb (make-full-array-loop {:type :assignment
-                             :dims (:dims A)
-                             :left A
-                             :right B})))
+  (element-wise-type 
+   'assign-element [A B]
+   (fn [x]
+     (cb (make-full-array-loop x)))))
 
 (defmethod make-clojure-data :disp-element [x] nil)
 
