@@ -1,6 +1,11 @@
 (ns typedmath.core
   (:require [typedmath.index-loop :refer :all]))
 
+(defn compilation-error [& s]
+  (throw (RuntimeException. (apply str s))))
+
+
+
 ;; TODOs
 ;;   * type hint as many let-assignments as possible
 ;;   * implement 'to-data' for common matrix types
@@ -8,17 +13,43 @@
 ;;   * flatten nested let's and simplify but not beyond loops and functions.
 ;;   * use the espresso library for simplifying indices.
 
-(defmacro addi [a b]
+;; Platform specificics. Depends on whether we are on the JVM or on Javascript.
+(def platform-spec 
+  (atom {:add {:long 'unchecked-add-int
+               :int 'unchecked-add-int
+               :double 'unchecked-add}
+         :mul {:long 'unchecked-multiply-int
+               :int 'unchecked-multiply-int
+               :double 'unchecked-multiply}
+         :sub {:long 'unchecked-subtract-int
+               :int 'unchecked-subtract-int
+               :double 'unchecked-subtract}
+         :div {:long 'unchecked-divide-int
+               :int 'unchecked-divide-int
+               :double /}
+         :neg {:long 'unchecked-negate-int
+               :int 'unchecked-negate-int
+               :double 'unchecked-negate}}))
+
+(defn get-op [what type]
+  (let [spec (deref platform-spec)]
+    (if-let [per-type (get spec what)]
+      (if (contains? per-type type)
+        (get per-type type)
+        (compilation-error "Missing operation for type " type " in " per-type))
+      (compilation-error "Missing operations for " what))))
+
+(defmacro add [type a b]
   (cond
     (= 0 a) b
     (= 0 b) a
-    :default `(unchecked-add-int ~a ~b)))
+    :default `(~(get-op :add type) ~a ~b)))
 
-(defmacro muli [a b]
+(defmacro mul [type a b]
   (cond
     (= 1 a) b
     (= 1 b) a
-    :default `(unchecked-multiply-int ~a ~b)))
+    :default `(~(get-op :mul type) ~a ~b)))
 
 (defmacro addf [a b]
   (cond
@@ -34,9 +65,6 @@
     
 (defn type-hint-symbol [sym tag]
   (vary-meta sym assoc :tag tag))
-
-(defn compilation-error [& s]
-  (throw (RuntimeException. (apply str s))))
 
 (defmacro disp [x]
   `(let [value# ~x] 
@@ -426,10 +454,7 @@
 
 (templated 
  [left right result]
- [[:double :double :double]
-  [:double :double :double]
-  [:double :double :double]
-  [:double :double :double]]
+ [[:double :double :double]]
  (do
    (def-typed-inline typed+ [[left a] [right b]] cb
      (cb {:type result
@@ -448,8 +473,7 @@
 (def-typed-reduced typed*)
 (templated
  [input output]
- [[:double :double]
-  [:double :double]]
+ [[:double :double]]
  (def-typed-inline typed- [[input x]] cb
    (cb {:type output
         :expr (precompute `(unchecked-negate ~(:expr x)))})))
@@ -643,7 +667,7 @@
 (defmulti get-single-element :type)
 
 (defmacro compute-offset [old-offset step index]
-  `(addi ~old-offset (muli ~step ~index)))
+  `(add :long ~old-offset (mul :long ~step ~index)))
 
 (defn split-outer-ndarray [mat sym cb]
 ; (type-hint-symbol (gensym) 'int)]
@@ -665,7 +689,7 @@
   (assert (symbol? arr))
   (assert (symbol? offset))
   (assert (number? n))
-  (map (fn [i] `(aget ~arr (addi ~offset ~i))) (range n)))
+  (map (fn [i] `(aget ~arr (add :long ~offset ~i))) (range n)))
 
 (defn list-ndarray-agets [mat]
   (let [etype (:elem-type mat)]
@@ -750,7 +774,7 @@
         (fn [i x]
           `(aset 
             ~(:data storage) 
-            (addi ~(:offset storage) ~i)
+            (add :long ~(:offset storage) ~i)
             ~x))
         (range (count elements))
         elements)))
