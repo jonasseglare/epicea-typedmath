@@ -581,27 +581,6 @@
 ;;        :dim-expr-fn (fn [index] `(nth (:dims ~src) ~index))
 ;;        :index-expr-fn (fn [inds] )}))
 
-(def-typed-inline typed+ [[:ndarray A]
-                          [:ndarray B]] cb
-  (cb {:type :add
-       :left A
-       :right B}))
-
-(def-typed-inline typed* [[:ndarray A]
-                          [:ndarray B]] cb
-  (cb {:type :matmul
-       :left A
-       :right B}))
-
-(def-typed-inline typed- [[:ndarray A]
-                          [:ndarray B]] cb
-  (cb {:type :sub
-       :left A
-       :right B}))
-
-(def-typed-inline typed- [[:ndarray A]] cb
-  (cb {:type :neg
-       :value A}))  
 
 (def-typed-inline typed-transpose [[:ndarray A]] cb
   (cb {:type :transpose
@@ -784,6 +763,22 @@
    'assign-element [A B]
    (fn [x]
      (cb (make-full-array-loop x)))))
+
+(defn array-op-tester [args]
+  (some array-like? args))
+
+(defn element-wise-array-op [name]
+  (add-typed-inline 
+   name
+   array-op-tester
+   (fn [[& args] cb]
+     (element-wise-type 
+      name args cb))))
+
+(element-wise-array-op 'typed*)
+(element-wise-array-op 'typed+)
+(element-wise-array-op 'typed-)
+  
 
 (defmethod make-clojure-data :disp-element [x] nil)
 
