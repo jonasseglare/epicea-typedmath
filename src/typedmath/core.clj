@@ -15,7 +15,7 @@
 
 ;; Platform specificics. Depends on whether we are on the JVM or on Javascript.
 (def platform-spec 
-  (atom {:add {:long 'unchecked-add-int
+  {:add {:long 'unchecked-add-int
                :int 'unchecked-add-int
                :double 'unchecked-add}
          :mul {:long 'unchecked-multiply-int
@@ -29,10 +29,10 @@
                :double /}
          :neg {:long 'unchecked-negate-int
                :int 'unchecked-negate-int
-               :double 'unchecked-negate}}))
+               :double 'unchecked-negate}})
 
 (defn get-op [what type]
-  (let [spec (deref platform-spec)]
+  (let [spec platform-spec];(deref platform-spec)]
     (if-let [per-type (get spec what)]
       (if (contains? per-type type)
         (get per-type type)
