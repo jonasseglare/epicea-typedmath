@@ -203,6 +203,8 @@
     (let [[A B] (assign-test)]
       (is (= (vec (:data A))
              (vec (:data B)))))
+    (is (not (array-like? {:type :number :expr 9})))
+    (is (array-like? (ndarray-type {:type :number} 2)))
 
 ))
 

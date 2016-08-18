@@ -87,6 +87,9 @@
 (defn scalar? [x]
   (contains? #{:double :number :ad :complex} (:type x)))
 
+(defn array-like? [x]
+  (contains? #{:ndarray} (:type x)))
+
 (defmulti make-clojure-data :type :default nil)
 (defmulti drop-data :type)
 (defmulti flat-size :type)
