@@ -57,7 +57,7 @@
 ;; Represents any number on the host platform.
 (defn make-number-type [x]
   (assert (number? x))
-  {:type :number :expr x})
+  {:type :double :expr x})
 
 ;;;;;;;;;;;;;; UTILITIES
 (defn precompute [x]
@@ -85,7 +85,7 @@
 ;;;;;;;;;;; METHODS AND FUNCTIONS ON TYPES ON THE DATA
 ;; If something is a scalar, in the mathematical sense. Not a vector or so...
 (defn scalar? [x]
-  (contains? #{:double :number :ad :complex} (:type x)))
+  (contains? #{:double :ad :complex} (:type x)))
 
 (defn array-like? [x]
   (contains? #{:ndarray} (:type x)))
@@ -108,7 +108,7 @@
 
 (templated
  [y]
- [[:number] 
+ [[:double] 
   [:double]]
  (do
    (defmethod flat-vector y [x] [(:expr x)])
@@ -413,7 +413,7 @@
 
 (defn make-num-from-sym [spec x]
   (assoc spec :expr x))
-(defmethod make-input-value :number [spec x cb] (cb (make-num-from-sym spec x)))
+(defmethod make-input-value :double [spec x cb] (cb (make-num-from-sym spec x)))
 (defmethod make-input-value :double [spec x cb] (cb (make-num-from-sym spec x)))
 (defmethod make-input-value :vector [spec x cb] 
   (async-map (fn [[field i] cb]
@@ -426,9 +426,9 @@
 
 (templated 
  [left right result]
- [[:number :number :number]
-  [:double :number :number]
-  [:number :double :number]
+ [[:double :double :double]
+  [:double :double :double]
+  [:double :double :double]
   [:double :double :double]]
  (do
    (def-typed-inline typed+ [[left a] [right b]] cb
@@ -448,7 +448,7 @@
 (def-typed-reduced typed*)
 (templated
  [input output]
- [[:number :number]
+ [[:double :double]
   [:double :double]]
  (def-typed-inline typed- [[input x]] cb
    (cb {:type output
@@ -793,7 +793,7 @@
   {:type :ndarray :dim-count dim-count :elem-type elem-type})
 
 (def ndarray-test-spec
-  '{:type :ndarray, :dim-count 2, :elem-type {:type :number}, 
+  '{:type :ndarray, :dim-count 2, :elem-type {:type :double}, 
     :offset G__14085, :dim-syms [G__14089 G__14090], 
     :step-syms [G__14087 G__14088], :data G__14086, 
     :actual-steps [G__14091 G__14092]})
