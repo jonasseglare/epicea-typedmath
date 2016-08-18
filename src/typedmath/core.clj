@@ -446,6 +446,13 @@
 (def-typed-reduced typed+)
 (def-typed-reduced typed-)
 (def-typed-reduced typed*)
+(templated
+ [input output]
+ [[:number :number]
+  [:double :double]]
+ (def-typed-inline typed- [[input x]] cb
+   (cb {:type output
+        :expr (precompute `(unchecked-negate ~(:expr x)))})))
 
 
 (defmacro elementwise-left [op]

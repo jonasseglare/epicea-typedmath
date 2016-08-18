@@ -122,6 +122,7 @@
            {:type :number, :expr 9}))
     (is (= (let [a 9] (statically (input-value {:type :number} a)))
            {:type :number :expr 9}))
+    (is (= {:type :number :value -9.0}) (statically (typed- 9.0)))
     (is (= (let [a 2
                  b 3]
              (statically 
