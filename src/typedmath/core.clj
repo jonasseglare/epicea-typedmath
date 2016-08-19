@@ -776,12 +776,16 @@
       (:storage A)
       (flat-vector B)))))
 
-(def-typed-inline assign [[dont-care A] 
-                          [dont-care B]] cb
+(defn perform-assignment [A B cb]
   (element-wise-type
    'assign-element [A B]
    (fn [x]
      (cb (make-full-array-loop x)))))
+
+
+(def-typed-inline assign [[dont-care A] 
+                          [dont-care B]] cb
+  (perform-assignment A B cb))
 
 (defn array-op-tester [args]
   (some array-like? args))
@@ -797,7 +801,17 @@
 (element-wise-array-op 'typed*)
 (element-wise-array-op 'typed+)
 (element-wise-array-op 'typed-)
-  
+
+(def-typed-inline make-ndarray [[dont-care x]] cb
+  (let [dst (gensym)
+        et (:elem-type x)]
+    `(let [~dst (allocate-ndarray ~(:dim-syms x) ~et)]
+       ~(make-ndarray-type 
+         (:dim-count x) (:elem-type x) dst
+         (fn [arr]
+           (perform-assignment 
+            arr x cb))))))
+       
 
 (defmethod make-clojure-data :disp-element [x] nil)
 
@@ -809,3 +823,4 @@
     :offset G__14085, :dim-syms [G__14089 G__14090], 
     :step-syms [G__14087 G__14088], :data G__14086, 
     :actual-steps [G__14091 G__14092]})
+;(macroexpand '(statically (make-ndarray (input-value (ndarray-type {:type :double} 2)))))
