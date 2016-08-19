@@ -20,6 +20,7 @@
     (let [^"[D" B (make-array Double/TYPE 3)]
       (is (instance? java.lang.Double (aget B 0))))))
 
+(comment
 
 (deftest typedmath-test
   (testing "Inlining"
@@ -173,6 +174,7 @@
              (input-value (ndarray-type {:type :double} 2) A)))
     [A B]))
 
+
 (deftest matrices
   (testing "Matrices"
     (is (= (+ 1 (* 2 3)) 
@@ -213,7 +215,7 @@
 
 
 
-
+)
 
 
 
