@@ -14,42 +14,44 @@
 ;;   * use the espresso library for simplifying indices.
 
 ;; Platform specificics. Depends on whether we are on the JVM or on Javascript.
-(def platform-spec 
-  {:add {:long 'unchecked-add-int
-               :int 'unchecked-add-int
-               :double 'unchecked-add}
-         :mul {:long 'unchecked-multiply-int
-               :int 'unchecked-multiply-int
-               :double 'unchecked-multiply}
-         :sub {:long 'unchecked-subtract-int
-               :int 'unchecked-subtract-int
-               :double 'unchecked-subtract}
-         :div {:long 'unchecked-divide-int
-               :int 'unchecked-divide-int
-               :double /}
-         :neg {:long 'unchecked-negate-int
-               :int 'unchecked-negate-int
-               :double 'unchecked-negate}})
+;; (def platform-spec 
+;;   {:add {:long 'unchecked-add-int
+;;                :int 'unchecked-add-int
+;;                :double 'unchecked-add}
+;;    :mul {:long 'unchecked-multiply-int
+;;          :int 'unchecked-multiply-int
+;;          :double 'unchecked-multiply}
+;;    :sub {:long 'unchecked-subtract-int
+;;          :int 'unchecked-subtract-int
+;;          :double 'unchecked-subtract}
+;;    :div {:long 'unchecked-divide-int
+;;          :int 'unchecked-divide-int
+;;          :double /}
+;;    :neg {:long 'unchecked-negate-int
+;;          :int 'unchecked-negate-int
+;;          :double 'unchecked-negate}})
 
-(defn get-op [what type]
-  (let [spec platform-spec];(deref platform-spec)]
-    (if-let [per-type (get spec what)]
-      (if (contains? per-type type)
-        (get per-type type)
-        (compilation-error "Missing operation for type " type " in " per-type))
-      (compilation-error "Missing operations for " what))))
+;; (defn get-op [what type]
+;;   (let [spec platform-spec];(deref platform-spec)]
+;;     (if-let [per-type (get spec what)]
+;;       (if (contains? per-type type)
+;;         (get per-type type)
+;;         (compilation-error "Missing operation for type " type " in " per-type))
+;;       (compilation-error "Missing operations for " what))))
 
 (defmacro add [type a b]
   (cond
     (= 0 a) b
     (= 0 b) a
-    :default `(~(get-op :add type) ~a ~b)))
+    ;:default `(~(get-op :add type) ~a ~b)))
+    :default `(+ ~a ~b)))
 
 (defmacro mul [type a b]
   (cond
     (= 1 a) b
     (= 1 b) a
-    :default `(~(get-op :mul type) ~a ~b)))
+    ;;:default `(~(get-op :mul type) ~a ~b)))
+    :default `(* ~a ~b)))
 
 (defmacro addf [a b]
   (cond
