@@ -44,27 +44,13 @@
     (= 0 a) b
     (= 0 b) a
     :default `(~(get-op :add type) ~a ~b)))
-    ;:default `(+ ~a ~b)))
 
 (defmacro mul [type a b]
   (cond
     (= 1 a) b
     (= 1 b) a
     :default `(~(get-op :mul type) ~a ~b)))
-    ;:default `(* ~a ~b)))
 
-(defmacro addf [a b]
-  (cond
-    (= 0 a) b
-    (= 0 b) a
-    :default `(unchecked-add ~a ~b)))
-
-(defmacro mulf [a b]
-  (cond
-    (= 1 a) b
-    (= 1 b) a
-    :default `(unchecked-mul ~a ~b)))
-    
 (defn type-hint-symbol [sym tag]
   (vary-meta sym assoc :tag tag))
 
