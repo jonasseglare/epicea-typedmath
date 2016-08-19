@@ -113,14 +113,14 @@
             :fields [{:type :double, :expr 3} 
                      {:type :double, :expr 4} 
                      {:type :double, :expr 5}]}))
-    ;; (is (= [4 5 6] (statically (output-value (typed+ 1 [3 4 5])))))
-    ;; (is (= (bind-context {} 'rulle {:type :double :expr 3})
-    ;;        {:bindings {'rulle {:type :double :expr 3}}}))
-    ;; (is (= (let [a 9] (statically (input-value {:type :double} a) a))
-    ;;        {:type :double, :expr 9}))
-    ;; (is (= (let [a 9] (statically (input-value {:type :double} a)))
-    ;;        {:type :double :expr 9}))
-    ;; (is (= {:type :double :value -9.0}) (statically (typed- 9.0)))
+    (is (= [4 5 6] (statically (output-value (typed+ 1 [3 4 5])))))
+    (is (= (bind-context {} 'rulle {:type :double :expr 3})
+           {:bindings {'rulle {:type :double :expr 3}}}))
+    (is (= (let [a 9] (statically (input-value {:type :double} a) a))
+           {:type :double, :expr 9}))
+    (is (= (let [a 9] (statically (input-value {:type :double} a)))
+           {:type :double :expr 9}))
+    (is (= {:type :double :expr -9.0} (statically (typed- 9.0))))
     ;; (is (= (let [a 2
     ;;              b 3]
     ;;          (statically 
