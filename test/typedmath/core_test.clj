@@ -91,14 +91,14 @@
     (is (= 3 (flat-size (compile-expr1 {} '[1 2 3] identity))))
     (is (= [1 2 3 4 5] (flat-vector (compile-expr1 {} '[1 2 [[3] 4 5]] identity))))
 
-    ;; (is (= (populate {:type :double} [9])
-    ;;        {:type :double :expr 9}))
-    ;; (let [my-type (drop-data (compile-expr1 {} '[1 [2 3]] identity))]
-    ;;   (is (= my-type {:type :vector, :fields 
-    ;;                   [{:type :double} {:type :vector, :fields 
-    ;;                                     [{:type :double} {:type :double}]}]}))
-    ;;   (is (= (compile-expr1 {} '[9 [20 119]] identity)
-    ;;          (populate my-type [9 20 119]))))
+    (is (= (populate {:type :double} [9])
+           {:type :double :expr 9}))
+    (let [my-type (drop-data (compile-expr1 {} '[1 [2 3]] identity))]
+      (is (= my-type {:type :vector, :fields 
+                      [{:type :double} {:type :vector, :fields 
+                                        [{:type :double} {:type :double}]}]}))
+      (is (= (compile-expr1 {} '[9 [20 119]] identity)
+             (populate my-type [9 20 119]))))
 
     ;; (is (= (compile-expr1 {} '[9 [4 5 6] 7 8 9] identity)
     ;;        (populate (drop-data (compile-expr1 {} '[0 [0 0 0] 0 0 0] identity))
