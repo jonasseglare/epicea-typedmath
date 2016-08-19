@@ -160,9 +160,6 @@
 
 
 
-(comment
-
-
 (defn assign-test []
   (let [A (allocate-ndarray [2 3] {:type :double})
         B (allocate-ndarray [2 3] {:type :double})
@@ -218,7 +215,6 @@
 
 
 
-)
 
 
 
