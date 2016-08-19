@@ -29,59 +29,58 @@
     (is (= {:katt [119]} (conj-in-map {} :katt 119)))
     (is (= {:katt [119 120]} 
            (conj-in-map {:katt [119]} :katt 120)))
-    ;; (is (= :dummy-numbers
-    ;;        (find-typed-inline 'dummy [1 2 3])))
-    ;; (is (nil? (find-typed-inline 'another-dummy [1 2 3])))
-    ;; (is (valid-type-spec? [[:double 'a] [:scalar 'b]]))
-    ;; (is (not (valid-type-spec? [[1] [:double 'b]])))
-    ;; (is ((make-type-tester [[:double 'a] [:double 'b]])
-    ;;          [{:type :double :value 9} {:type :double :value 10}]))
-    ;; (is
-    ;;  (not 
-    ;;   ((make-type-tester [[:double 'a] [:scalar 'b]])
-    ;;    [{:type :double :value 9} {:type :double :value 10}])))
-    ;; (is (= (call-typed-inline 'typed+ [{:type :double :expr 3}
-    ;;                                    {:type :double :expr 4}] identity)
-    ;;        {:type :double
-    ;;         :expr 7}))
+    (is (= :dummy-numbers
+           (find-typed-inline 'dummy [1 2 3])))
+    (is (nil? (find-typed-inline 'another-dummy [1 2 3])))
+    (is (valid-type-spec? [[:double 'a] [:scalar 'b]]))
+    (is (not (valid-type-spec? [[1] [:double 'b]])))
+    (is ((make-type-tester [[:double 'a] [:double 'b]])
+             [{:type :double :value 9} {:type :double :value 10}]))
+    (is
+     (not 
+      ((make-type-tester [[:double 'a] [:scalar 'b]])
+       [{:type :double :value 9} {:type :double :value 10}])))
+    (is (= (call-typed-inline 'typed+ [{:type :double :expr 3}
+                                       {:type :double :expr 4}] identity)
+           {:type :double
+            :expr 7}))
 
-    ;; (is (= {:type :double :expr 9}) (make-number-type 9))
-    ;; (is (= [{:type :double :value 9} {:type :double :value 11}])
-    ;;     (compile-exprs {} [9 11] (fn [_ x] x)))
+    (is (= {:type :double :expr 9}) (make-number-type 9))
+    (is (= [{:type :double :value 9} {:type :double :value 11}])
+        (compile-exprs {} [9 11] (fn [_ x] x)))
 
-    ;; (is (= [:this-is-a-number {:type :double :expr 9}]
-    ;;            (compile-expr1 {} 9 (fn [x] [:this-is-a-number x]))))
-    ;; (is (= (compile-expr1 {} [1 2 3] identity)
-    ;;            {:type :vector, :fields [{:type :double, :expr 1} 
-    ;;                                     {:type :double, :expr 2} 
-    ;;                                     {:type :double, :expr 3}]}))
-    ;; (is (= (compile-expr1 {} [[1 2] 3] identity)
-    ;;            {:type :vector, :fields [{:type :vector, :fields 
-    ;;                                      [{:type :double, :expr 1} 
-    ;;                                       {:type :double, :expr 2}]} 
-    ;;                                     {:type :double, :expr 3}]}))
-    ;; (is (= (compile-expr1 {} '(typed+ 1 2) identity)
-    ;;            {:type :double, :expr 3}))
+    (is (= [:this-is-a-number {:type :double :expr 9}]
+               (compile-expr1 {} 9 (fn [x] [:this-is-a-number x]))))
+    (is (= (compile-expr1 {} [1 2 3] identity)
+               {:type :vector, :fields [{:type :double, :expr 1} 
+                                        {:type :double, :expr 2} 
+                                        {:type :double, :expr 3}]}))
+    (is (= (compile-expr1 {} [[1 2] 3] identity)
+               {:type :vector, :fields [{:type :vector, :fields 
+                                         [{:type :double, :expr 1} 
+                                          {:type :double, :expr 2}]} 
+                                        {:type :double, :expr 3}]}))
+    (is (= (compile-expr1 {} '(typed+ 1 2) identity)
+               {:type :double, :expr 3}))
+    (is (= (compile-expr1 {} '(typed+ [1 2 3] 4) identity)
+               '{:type :vector, 
+                 :fields [{:type :double, 
+                           :expr 5} 
+                          {:type :double, :expr 6} 
+                          {:type :double, :expr 7}]}))
+    (is (= [5 6 7]
+           (eval (make-clojure-data 
+                  (compile-expr1 {} '(typed+ [1 2 3] 4) identity)))))
 
-    ;; (is (= (compile-expr1 {} '(typed+ [1 2 3] 4) identity)
-    ;;            '{:type :vector, 
-    ;;              :fields [{:type :double, 
-    ;;                        :expr 5} 
-    ;;                       {:type :double, :expr 6} 
-    ;;                       {:type :double, :expr 7}]}))
-    ;; (is (= [5 6 7]
-    ;;        (eval (make-clojure-data 
-    ;;               (compile-expr1 {} '(typed+ [1 2 3] 4) identity)))))
-
-    ;; (is (= (replace-recursively {:a 3 :b 4} [:a :b])
-    ;;        [3 4]))
+    (is (= (replace-recursively {:a 3 :b 4} [:a :b])
+           [3 4]))
     
-    ;; (is (= (compile-expr1 {} '(typed* 9 3) identity)
-    ;;        '{:type :double :expr 27}))
+    (is (= (compile-expr1 {} '(typed* 9 3) identity)
+           '{:type :double :expr 27}))
 
-    ;; (is (= [-1 -2 -3] 
-    ;;        (make-clojure-data
-    ;;         (compile-expr1 {} '(typed- [5 4 3] 6) identity))))
+    (is (= [-1 -2 -3] 
+           (make-clojure-data
+            (compile-expr1 {} '(typed- [5 4 3] 6) identity))))
     ;; (is (= [2 4 8]
     ;;        (make-clojure-data
     ;;         (compile-expr1 {} '(typed* 2 [1 2 4]) identity))))
