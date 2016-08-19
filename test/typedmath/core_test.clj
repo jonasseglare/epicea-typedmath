@@ -81,15 +81,15 @@
     (is (= [-1 -2 -3] 
            (make-clojure-data
             (compile-expr1 {} '(typed- [5 4 3] 6) identity))))
-    ;; (is (= [2 4 8]
-    ;;        (make-clojure-data
-    ;;         (compile-expr1 {} '(typed* 2 [1 2 4]) identity))))
+    (is (= [2 4 8]
+           (make-clojure-data
+            (compile-expr1 {} '(typed* 2 [1 2 4]) identity))))
 
-    ;; (is (= (drop-data (compile-expr1 {} '[1 2 3] identity))
-    ;;        {:type :vector, :fields [{:type :double} {:type :double} {:type :double}]}))
+    (is (= (drop-data (compile-expr1 {} '[1 2 3] identity))
+           {:type :vector, :fields [{:type :double} {:type :double} {:type :double}]}))
 
-    ;; (is (= 3 (flat-size (compile-expr1 {} '[1 2 3] identity))))
-    ;; (is (= [1 2 3 4 5] (flat-vector (compile-expr1 {} '[1 2 [[3] 4 5]] identity))))
+    (is (= 3 (flat-size (compile-expr1 {} '[1 2 3] identity))))
+    (is (= [1 2 3 4 5] (flat-vector (compile-expr1 {} '[1 2 [[3] 4 5]] identity))))
 
     ;; (is (= (populate {:type :double} [9])
     ;;        {:type :double :expr 9}))
