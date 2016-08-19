@@ -121,39 +121,39 @@
     (is (= (let [a 9] (statically (input-value {:type :double} a)))
            {:type :double :expr 9}))
     (is (= {:type :double :expr -9.0} (statically (typed- 9.0))))
-    ;; (is (= (let [a 2
-    ;;              b 3]
-    ;;          (statically 
-    ;;           (input-value {:type :double} a)
-    ;;           (input-value {:type :double} b)
-    ;;           (typed+ a b)))
-    ;;        {:type :double :expr 5}))
-    ;; (is (= (statically (typed+ (input-value {:type :double} 3) 
-    ;;                            (input-value {:type :double} 4)))
-    ;;        {:type :double, :expr 7}))
-    ;; (is (= (let [A [1 2 3 4]]
-    ;;          (statically 
-    ;;           (output-value
-    ;;            (typed+ 
-    ;;             9 (input-value {:type :vector 
-    ;;                         :fields [{:type :double} 
-    ;;                                  {:type :double} 
-    ;;                                  {:type :double} 
-    ;;                                  {:type :double}]} A)))))
-    ;;        [10 11 12 13]))
-    ;; (is (= (sized-vector-type {:type :double} 3)
-    ;;        '{:type :vector, :fields ({:type :double} {:type :double} {:type :double})}))
+    (is (= (let [a 2
+                 b 3]
+             (statically 
+              (input-value {:type :double} a)
+              (input-value {:type :double} b)
+              (typed+ a b)))
+           {:type :double :expr 5}))
+    (is (= (statically (typed+ (input-value {:type :double} 3) 
+                               (input-value {:type :double} 4)))
+           {:type :double, :expr 7}))
+    (is (= (let [A [1 2 3 4]]
+             (statically 
+              (output-value
+               (typed+ 
+                9 (input-value {:type :vector 
+                            :fields [{:type :double} 
+                                     {:type :double} 
+                                     {:type :double} 
+                                     {:type :double}]} A)))))
+           [10 11 12 13]))
+    (is (= (sized-vector-type {:type :double} 3)
+           '{:type :vector, :fields ({:type :double} {:type :double} {:type :double})}))
 
-    ;; (is (= (let [A [3 4 5]]
-    ;;          (statically 
-    ;;           (output-value
-    ;;            (typed+
-    ;;             9 (input-value (sized-vector-type {:type :double} 3) A)))))
-    ;;        [12 13 14]))
+    (is (= (let [A [3 4 5]]
+             (statically 
+              (output-value
+               (typed+
+                9 (input-value (sized-vector-type {:type :double} 3) A)))))
+           [12 13 14]))
 
-    ;; (is (= (Math/sin (* 0.25 Math/PI))
-    ;;        (statically (output-value (Math/sin (* 0.25 Math/PI))))))
-    ;; (is (= {:type :double :expr 6} (statically (typed+ 1 2 3))))
+    (is (= (Math/sin (* 0.25 Math/PI))
+           (statically (output-value (Math/sin (* 0.25 Math/PI))))))
+    (is (= {:type :double :expr 6} (statically (typed+ 1 2 3))))
 
     ))
 
