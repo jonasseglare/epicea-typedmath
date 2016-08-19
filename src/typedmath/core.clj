@@ -43,15 +43,15 @@
   (cond
     (= 0 a) b
     (= 0 b) a
-    ;:default `(~(get-op :add type) ~a ~b)))
-    :default `(+ ~a ~b)))
+    :default `(~(get-op :add type) ~a ~b)))
+    ;:default `(+ ~a ~b)))
 
 (defmacro mul [type a b]
   (cond
     (= 1 a) b
     (= 1 b) a
-    ;;:default `(~(get-op :mul type) ~a ~b)))
-    :default `(* ~a ~b)))
+    :default `(~(get-op :mul type) ~a ~b)))
+    ;:default `(* ~a ~b)))
 
 (defmacro addf [a b]
   (cond
