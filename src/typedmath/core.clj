@@ -582,6 +582,10 @@
            ~@(mapcat (fn [x y] [^int x y]) dim-symbols dims)]
        ~(cb {:type :ndarray
              :dims dim-symbols
+             :data data-symbol
+             :offset 0
+             :dim-count dim-count
+             :elem-type elem-type
              :get-element-fn get-element}))))
 
 
@@ -675,7 +679,7 @@
 
 (defn list-agets [arr offset n]
   (assert (symbol? arr))
-  (assert (symbol? offset))
+  (assert (or (number? offset) (symbol? offset)))
   (assert (number? n))
   (map (fn [i] `(aget ~arr (add :long ~offset ~i))) (range n)))
 
@@ -803,12 +807,14 @@
 (element-wise-array-op 'typed-)
 
 (def-typed-inline make-ndarray [[dont-care x]] cb
+  (disp x)
   (let [dst (gensym)
         et (:elem-type x)]
     `(let [~dst (allocate-ndarray ~(:dim-syms x) ~et)]
        ~(make-ndarray-type 
          (:dim-count x) (:elem-type x) dst
          (fn [arr]
+           (disp arr)
            (perform-assignment 
             arr x cb))))))
        
