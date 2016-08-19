@@ -100,19 +100,19 @@
       (is (= (compile-expr1 {} '[9 [20 119]] identity)
              (populate my-type [9 20 119]))))
 
-    ;; (is (= (compile-expr1 {} '[9 [4 5 6] 7 8 9] identity)
-    ;;        (populate (drop-data (compile-expr1 {} '[0 [0 0 0] 0 0 0] identity))
-    ;;                  [9 4 5 6 7 8 9])))
-    ;; (is (= 3 (get-primitive {:type :double :expr 3})))
-    ;; (is (= {:a 3} (compile-expr1 {} ''{:a 3} identity)))
-    ;; (is (= {:a 3} (compile-expr1 {} '(quote {:a 3}) identity)))
-    ;; (is (= (statically (output-value [3 4 5]))
-    ;;        [3 4 5]))
-    ;; (is (= (statically [3 4 5])
-    ;;        {:type :vector
-    ;;         :fields [{:type :double, :expr 3} 
-    ;;                  {:type :double, :expr 4} 
-    ;;                  {:type :double, :expr 5}]}))
+    (is (= (compile-expr1 {} '[9 [4 5 6] 7 8 9] identity)
+           (populate (drop-data (compile-expr1 {} '[0 [0 0 0] 0 0 0] identity))
+                     [9 4 5 6 7 8 9])))
+    (is (= 3 (get-primitive {:type :double :expr 3})))
+    (is (= {:a 3} (compile-expr1 {} ''{:a 3} identity)))
+    (is (= {:a 3} (compile-expr1 {} '(quote {:a 3}) identity)))
+    (is (= (statically (output-value [3 4 5]))
+           [3 4 5]))
+    (is (= (statically [3 4 5])
+           {:type :vector
+            :fields [{:type :double, :expr 3} 
+                     {:type :double, :expr 4} 
+                     {:type :double, :expr 5}]}))
     ;; (is (= [4 5 6] (statically (output-value (typed+ 1 [3 4 5])))))
     ;; (is (= (bind-context {} 'rulle {:type :double :expr 3})
     ;;        {:bindings {'rulle {:type :double :expr 3}}}))
