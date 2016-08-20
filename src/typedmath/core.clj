@@ -10,7 +10,8 @@
 ;;   * type hint as many let-assignments as possible
 ;;   * Remove unused variables
 ;;   * Simplify loops
-;;   * Implement some ops.
+;;   * Initialiers: Index-based, eye, zeros, ones
+;;   * Implement some ops: +, -, *, norm
 
 
 (def platform-spec 
