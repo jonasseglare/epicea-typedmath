@@ -816,7 +816,8 @@
          (fn [arr]
            (disp arr)
            (perform-assignment 
-            arr x cb))))))
+            arr x cb)))
+       ~dst)))
        
 
 (defmethod make-clojure-data :disp-element [x] nil)
