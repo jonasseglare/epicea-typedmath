@@ -829,4 +829,4 @@
     :offset G__14085, :dim-syms [G__14089 G__14090], 
     :step-syms [G__14087 G__14088], :data G__14086, 
     :actual-steps [G__14091 G__14092]})
-;(macroexpand '(statically (make-ndarray (input-value (ndarray-type {:type :double} 2)))))
+;(macroexpand '(statically (make-ndarray (input-value (ndarray-type {:type :double} 2) A))))

@@ -209,6 +209,9 @@
     (is (not (array-like? {:type :double :expr 9})))
     (is (array-like? (ndarray-type {:type :double} 2)))
 
+    (let [A (allocate-ndarray [2 3] {:type :double})]
+      (is (= 0.0 (statically (make-ndarray (input-value (ndarray-type {:type :double} 2) A))))))
+
 ))
 
 
