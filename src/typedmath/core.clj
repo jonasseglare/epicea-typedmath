@@ -581,7 +581,7 @@
            ~size-symbol (:dims ~sym)
            ~@(mapcat (fn [x y] [^int x y]) dim-symbols dims)]
        ~(cb {:type :ndarray
-             :dims dim-symbols
+             :dim-syms dim-symbols
              :data data-symbol
              :offset 0
              :dim-count dim-count
@@ -739,6 +739,8 @@
   (split-outer-element-wise mat sym cb))
 
 (defn element-wise-type [op args cb]
+  (println "Elementwise for args:")
+  (disp args)
   (cb {:type :element-wise
        :op op
        :dim-syms (:dim-syms (first args))
@@ -831,3 +833,4 @@
     :step-syms [G__14087 G__14088], :data G__14086, 
     :actual-steps [G__14091 G__14092]})
 ;(macroexpand '(statically (make-ndarray (input-value (ndarray-type {:type :double} 2) A))))
+

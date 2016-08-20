@@ -216,7 +216,7 @@
       (set-element A [1 2] [119])
       (let [B (statically 
                (make-ndarray (input-value (ndarray-type {:type :double} 2) A)))]
-        nil))
+        (is (= 119.0 (aget (:data B) 5)))))
 
 ))
 
