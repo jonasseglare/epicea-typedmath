@@ -8,10 +8,10 @@
 
 ;; TODOs
 ;;   * type hint as many let-assignments as possible
-;;   * implement 'to-data' for common matrix types
-;;   * to-native-floats/from-native-floats
-;;   * flatten nested let's and simplify but not beyond loops and functions.
-;;   * use the espresso library for simplifying indices.
+;;   * Remove unused variables
+;;   * Simplify loops
+;;   * Implement some ops.
+
 
 (def platform-spec 
   (atom
