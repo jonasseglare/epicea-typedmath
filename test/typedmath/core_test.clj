@@ -210,7 +210,13 @@
     (is (array-like? (ndarray-type {:type :double} 2)))
 
     (let [A (allocate-ndarray [2 3] {:type :double})]
-      (is (= 0.0 (statically (make-ndarray (input-value (ndarray-type {:type :double} 2) A))))))
+      (set-element A [0 0] [123])
+      (set-element A [1 0] [3])
+      (set-element A [0 1] [4])
+      (set-element A [1 2] [119])
+      (let [B (statically 
+               (make-ndarray (input-value (ndarray-type {:type :double} 2) A)))]
+        nil))
 
 ))
 
