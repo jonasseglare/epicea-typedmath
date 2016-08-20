@@ -808,24 +808,24 @@
 (element-wise-array-op 'typed+)
 (element-wise-array-op 'typed-)
 
+(defn ndarray-type [elem-type dim-count]
+  {:type :ndarray :dim-count dim-count :elem-type elem-type})
+
+
 (def-typed-inline make-ndarray [[dont-care x]] cb
-  (disp x)
   (let [dst (gensym)
         et (:elem-type x)]
     `(let [~dst (allocate-ndarray ~(:dim-syms x) ~et)]
-       ~(make-ndarray-type 
-         (:dim-count x) (:elem-type x) dst
-         (fn [arr]
-           (disp arr)
+       ~(make-input-value 
+         (ndarray-type et (:dim-count x)) dst
+         (fn [dst-expr]
            (perform-assignment 
-            arr x cb)))
+            dst-expr x cb)))
        ~dst)))
        
 
 (defmethod make-clojure-data :disp-element [x] nil)
 
-(defn ndarray-type [elem-type dim-count]
-  {:type :ndarray :dim-count dim-count :elem-type elem-type})
 
 (def ndarray-test-spec
   '{:type :ndarray, :dim-count 2, :elem-type {:type :double}, 
