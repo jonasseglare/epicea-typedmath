@@ -797,7 +797,7 @@
 (defn array-op-tester [args]
   (some array-like? args))
 
-(defn element-wise-array-op [name]
+a(defn element-wise-array-op [name]
   (add-typed-inline 
    name
    array-op-tester
